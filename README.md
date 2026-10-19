@@ -17,7 +17,7 @@ this plugin is the scar tissue from running all of that for real, written down s
 /plugin install herdr-conductor@herdr-conductor
 ```
 
-then run `/herdr-conductor:setup` once. it's a doctor: checks herdr, the server, your integrations, saved machines and which harnesses are installed. read-only, it won't touch anything without asking.
+the second command opens a small menu asking where to install. pick the first one, "install for you (user scope)", and hit enter. then run `/herdr-conductor:setup` once. it's a doctor: checks herdr, the server, your integrations, saved machines and which harnesses are installed. read-only, it won't touch anything without asking.
 
 you need:
 
@@ -27,6 +27,19 @@ you need:
 - the harness clis you actually want to run (claude, codex, agy...), installed and logged in
 
 works from inside a herdr pane or from a plain terminal outside herdr. it figures out which one it's in.
+
+## installing on a saved machine
+
+plugins live in each machine's own claude config, so a remote box needs its own install. you can do it without leaving your session, straight through herdr:
+
+```text
+herdr --machine <label> agent start inst --kind claude --pane <pane> --timeout 30000
+herdr --machine <label> agent prompt inst "/plugin marketplace add yigitkonur/herdr-conductor"
+herdr --machine <label> agent prompt inst "/plugin install herdr-conductor@herdr-conductor"
+herdr --machine <label> agent send-keys inst enter
+```
+
+read the screen after each one. the first start stops at claude's folder-trust dialog (`down enter` if the folder is yours), and the install menu needs that last `enter`. then restart claude there so the hooks load. the box needs herdr 0.9.5, `python3` and a route to github. this exact flow was run on a linux box and the doctor, the skill, the worker agent and the guard all came up.
 
 ## what you can say
 

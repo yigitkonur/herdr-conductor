@@ -18,7 +18,7 @@ Run each check once and print one line per check: ok, warn or fail, with the evi
 2. `herdr config check`.
 3. `herdr integration status`: list the outdated ones. Never install on your own; offer the user `herdr integration install <agent>` for each (it rewrites that harness's hook config) and run it only after a yes.
 4. `herdr machine list --json`, then `herdr machine status --json` (checks without prompting for authentication). A machine that needs a login: the user runs `herdr machine reconnect <label>` themselves.
-5. Harnesses: `command -v` for claude, codex, agy and any harness the user config routes to. Do not run them: a machine's `agy` may be a wrapper that switches accounts on every launch.
+5. Harnesses: `command -v` for claude, codex, agy and any harness the user config routes to. Do not run them: a machine's `agy` may be a wrapper that switches accounts on every launch. A harness that exists only as a shell function or alias (claude often does, inside an agent's shell) is fine: report it as found, not as a warning.
 6. `printenv HERDR_ENV HERDR_PANE_ID` (inside or outside herdr), `command -v python3` (the hooks and `herdr-snapshot` need it), `command -v herdr-snapshot` (the plugin's `bin/` on PATH).
 7. `~/.config/herdr-conductor/config.md` present or not; a CONDUCTOR.md for this repository (references/ledger.md, finding the session directory).
 

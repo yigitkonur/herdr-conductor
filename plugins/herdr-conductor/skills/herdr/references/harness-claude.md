@@ -17,6 +17,10 @@ Back to [SKILL.md](../SKILL.md) · dialogs: [dialogs.md](dialogs.md).
 - It leaves its transcript in scrollback unless its TUI is fullscreen; fullscreen, `recent` gave only the 20 visible rows. The whole turn is then in `~/.claude/projects/<cwd with / as ->/<session>.jsonl` on that machine (`agent get` → `.agent_session.value` is the session id).
 - Claude's background work (Workflows, background agents, teammates) can outlive the turn that started it. Started with `--settings '{"ultracode":true}'`, claude labelled its input box "ultracode"; a small task ran as a Workflow, claude printed the marker once as the workflow started and ended that turn, then woke on the workflow's notification and printed the answer and the marker again 28 s later; a wait `--until done --until blocked` started before the first marker returned only after the second *(seen 0.9.3)*. So the run is over at the last marker with no "Waiting for N dynamic workflow" line on screen. Newer rule sets read such waits as `working` (`dynamic_workflow_prompt`, `background_agents_working`, `waiting_for_teammates_working`); check `agent explain` on that machine.
 
+## Slash commands that manage claude itself
+
+`/plugin marketplace add <owner/repo>` runs straight away, with no menu, and reloads plugins by itself. `/plugin install <name>@<marketplace>` opens a scope menu ("Install for you (user scope)" is the highlighted first row; footer "Enter to select · Esc to go back"); `enter` takes user scope and prints "Installed … Plugin is now active." *(claude 2.1.303)*. They start no model turn, so send them without `--wait`. Herdr read both screens `done`, with a new `completion_seq` for each command, never `blocked`: the footer is the only sign of the menu. Restart claude after installing so hooks and the session-start line load (references/waiting.md has the restart recipe).
+
 ## Questions and grilling
 
 - Asked for its question tool, claude shows AskUserQuestion dialogs, each `blocked` (keys in dialogs.md).
