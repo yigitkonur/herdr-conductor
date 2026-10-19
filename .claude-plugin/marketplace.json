@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "herdr-conductor",
+  "description": "Drive herdr (workspaces, tabs, panes, worktrees and the coding agents in them) from Claude Code.",
+  "owner": {
+    "name": "Yigit Konur",
+    "url": "https://github.com/yigitkonur"
+  },
+  "plugins": [
+    {
+      "name": "herdr-conductor",
+      "description": "Conduct coding agents in herdr from Claude Code: discover, start, prompt, wait in the background, answer dialogs, verify on the machine, review across harnesses, worktrees and saved machines.",
+      "version": "0.1.0",
+      "author": { "name": "Yigit Konur" },
+      "source": "./plugins/herdr-conductor",
+      "category": "productivity",
+      "keywords": ["herdr", "agents", "orchestration", "codex", "claude", "worktrees", "terminal"]
+    }
+  ]
+}

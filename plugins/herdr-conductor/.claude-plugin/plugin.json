@@ -1,0 +1,10 @@
+{
+  "name": "herdr-conductor",
+  "version": "0.1.0",
+  "description": "Conduct coding agents in herdr from Claude Code: discover, start, prompt, wait in the background, answer dialogs, verify on the machine, review across harnesses, worktrees and saved machines.",
+  "author": { "name": "Yigit Konur", "url": "https://github.com/yigitkonur" },
+  "homepage": "https://github.com/yigitkonur/herdr-conductor",
+  "repository": "https://github.com/yigitkonur/herdr-conductor",
+  "license": "MIT",
+  "keywords": ["herdr", "agents", "orchestration", "conductor", "codex", "claude", "agy", "worktrees"]
+}
