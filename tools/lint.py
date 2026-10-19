@@ -37,8 +37,10 @@ GLOBAL = {"--session", "--machine", "--remote", "--remote-keybindings", "--help"
           "--handoff", "--default-config", "--skill", "--version"}
 HIDDEN = {(("workspace", "close"), "--group")}  # accepted although --help omits it
 NUM = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6}
-LEAK = re.compile(r"\b(monster|tugce|agy-account|rclone|MISSION_PROTOCOL|raycast|elicitation|"
-                  r"gpt-\d|gemini-\d|opus|sonnet|haiku|fable|yigit)\b|/Users/mac|\.orchestrator", re.I)
+_extra = REPO / "tools" / "leak-private.txt"  # untracked: your own machine and tool names, one regex per line
+_private = [l.strip() for l in _extra.read_text().splitlines() if l.strip() and not l.startswith("#")] if _extra.is_file() else []
+LEAK = re.compile(r"\b(raycast|elicitation|gpt-\d|gemini-\d|opus|sonnet|haiku|fable)\b|/Users/[A-Za-z]+/"
+                  + "".join("|" + x for x in _private), re.I)
 LEAK_OK = {"README.md": {"yigit"}, "docs/COVERAGE.md": {"raycast"}}  # author credit; the source skill's file names
 fails, warns = [], []
 
