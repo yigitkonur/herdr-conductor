@@ -19,7 +19,7 @@ Machines: **local** is a macOS workstation, **remote** a Linux server saved as a
 | T9 | `idle`/`done` do not prove success | codex with a model that does not exist: start exit 0, prompt exit 0 `done`, 400 error on screen |
 | T10 | snapshot contents | `protocol`, `layouts`, `focused_workspace_id`, `focused_tab_id`, `focused_pane_id`; `agent_session` on most agents |
 | T11 | `cd` into a worktree | only the pane's `cwd` changes; `workspace_id` and the workspace's checkout stay |
-| T12 | `agent start` returning `idle` means ready | no: `idle` and `interactive_ready: true` with codex's trust dialog up; the next `agent get` read `blocked` (`trust_directory`) |
+| T12 | `agent start` returning `idle` means ready | no: `idle` and `interactive_ready: true` with codex's trust dialog up; the next `agent get` read `blocked` (`trust_directory`). On 0.9.5 (codex 0.163) `agent start` itself returned `agent_not_ready` there, and after `enter` codex read `done` with a new `completion_seq` before any prompt |
 | T13 | waits and prompts on a `blocked` agent | default wait exit 0 in 1.03 s; `--until idle` timed out; prompt `agent_blocked` in 0.82 s, screen byte-identical |
 | T14 | read formats | `--format ansi`, `--ansi`, `--raw` byte-identical (colours re-rendered, CRLF); `wait-output --raw` matched no ESC pattern |
 | T15 | agy's trust dialog | no rule (`default_known_agent_idle_fallback`); `--until blocked` timed out; a prompt into it exited `agent_prompt_stalled` after 12.7 s, answered the dialog and lost its text |
@@ -65,7 +65,7 @@ Where each finding is stated (paths relative to `plugins/herdr-conductor/`). Rew
 | T9 | skills/herdr/references/harness-codex.md | the turn settled `done`, exit 0 |
 | T10 | skills/herdr/SKILL.md | (`focused_workspace_id`, `focused_tab_id`, `focused_pane_id`) |
 | T11 | skills/herdr/references/worktrees.md | A shell's `cd` does not move a pane |
-| T12 | skills/herdr/references/dialogs.md | the next `agent get` read `blocked` (`trust_directory`) |
+| T12 | skills/herdr/references/dialogs.md | the next `agent get` read `blocked` |
 | T13 | skills/herdr/SKILL.md | returns that `blocked` at once |
 | T13 | skills/herdr/references/cli.md | the prompt got `agent_blocked` in 0.8 s |
 | T14 | skills/herdr/references/cli.md | gave byte-identical output |

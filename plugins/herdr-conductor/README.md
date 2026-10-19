@@ -7,7 +7,7 @@ The knowledge in it comes from many live runs against herdr: how agent states re
 ## Requirements
 
 - herdr 0.9.5 or newer on every machine it drives (`herdr --version`, `herdr status server --json`).
-- Claude Code with plugin support. `python3` for the hooks and `scripts/snapshot.py`.
+- Claude Code with plugin support (tested with 2.1.302). `python3` for the hooks and `herdr-snapshot`.
 - The harness CLIs you want to run (claude, codex, agy, …) installed and logged in on their machines.
 
 ## Install
@@ -32,7 +32,7 @@ Then run `/herdr-conductor:setup` once: it checks herdr, the server, integration
 | agent `herdr-worker` | A subagent that runs one task through one herdr agent and returns a fixed report with receipts. It never asks the user; a decision it cannot take comes back as `needs_decision`. |
 | hook PreToolUse(Bash) | The guard: denies herdr commands that stop or replace the server, change machines or sessions, open interactive clients, force-remove worktrees, close worktree groups, kill herdr, or pass approval-bypass flags to agents. Quoted brief text and heredocs are data and pass. |
 | hook SessionStart | One context line, only inside a herdr pane or in a project with a session directory: herdr versions, which pane is this session, the session directory, and after a resume or compaction the open run's waiters to re-arm. |
-| `scripts/snapshot.py` | `herdr api snapshot` as one row per agent with workspace and tab labels, status and `completion_seq`. |
+| `bin/herdr-snapshot` | On the Bash PATH while the plugin is enabled: `herdr api snapshot` as one row per agent with workspace and tab labels, status and `completion_seq`. |
 
 ## Scenarios
 

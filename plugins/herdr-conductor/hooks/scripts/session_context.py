@@ -133,6 +133,8 @@ def main():
             led, mt, head = run_
             age = int((time.time() - mt) / 60)
             owner = field(head, "owner_session")
+            if owner in ("unknown", "none", "-"):
+                owner = ""
             mine = bool(owner) and owner == sid
             w = waiters(open(led, encoding="utf-8").read())
             if source in ("resume", "compact") and (mine or not owner):

@@ -10,7 +10,7 @@ One herdr action or one short agent turn with nothing to verify afterwards. Act 
 
 One agent produces one result to check.
 
-1. Resolve the session directory and open a run ledger (references/ledger.md). Goal, scenario, autonomy.
+1. Resolve the session directory and open a run ledger (references/ledger.md); write a minimal CONDUCTOR.md if none exists (`repos:` with the key, `autonomy:`). Goal, scenario, autonomy.
 2. Pick the harness: the one the user named, else `routing` for the role, else ask once (offer the harnesses that `command -v` finds on that machine).
 3. Either run it yourself (tab, start, dialogs, brief, wait, read) or hand it to the `herdr-worker` subagent, which returns a fixed shape with receipts and never asks the user. A worker that returns `needs_decision` brings the dialog text and keys: decide or ask, then answer the dialog yourself. A worker that returns `running` brings the handles: arm your own background wait.
 4. Verify on the machine: the done-checks of the brief, run by you (cheap) or by a second agent (tests, review).
@@ -56,8 +56,8 @@ Judge a frozen candidate: a PR, a commit range, a diff.
 
 What is running, across servers, without taking anything over.
 
-- `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.py"` locally and with `--machine <label>` for each saved machine (`herdr machine list --json`); a machine that does not answer gets `herdr machine status <label> --json`.
-- Flag per agent: `blocked` (read the dialog), agy (read for `quota reached`), `done` with a `completion_seq` above the last sweep's, `unknown` panes that should hold an agent, agents on an open ledger that have no live waiter.
+- `herdr-snapshot` locally and with `--machine <label>` for each saved machine (`herdr machine list --json`); a machine that does not answer gets `herdr machine status <label> --json`.
+- Flags (the one definition; `/herdr-conductor:watch` uses it): `blocked` (read the dialog: question and keys); agy agents with `quota reached` or a reset timer on screen, whatever the status; `done` (unseen finished turns), and on a repeated sweep any `completion_seq` above the previous table's, which is in this conversation (the first sweep has no baseline); panes whose `agent` field is empty though a ledger names an agent there; agents on an open ledger with no live waiter.
 - Watch is read-only. Acting on an agent the run does not own needs the user's go; the agents of an open ledger are the run's own.
 - Periodic sweeps: `/herdr-conductor:watch --every <minutes>` sets a recurring `CronCreate` (session-only, fires when the session is idle, expires after 7 days); stop it with `CronDelete`.
 

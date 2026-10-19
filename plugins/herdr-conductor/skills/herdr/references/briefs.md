@@ -8,7 +8,7 @@ Back to [SKILL.md](../SKILL.md). A brief carries everything the agent may not as
 
 - A brief of a few lines goes inline in `agent prompt` (quoted heredoc).
 - A longer one goes into a file in the run folder (`briefs/<step>.md`, references/ledger.md) **on the agent's machine**, with a one-line prompt that names it, the harness's own mode word first if it uses one ("/boost Your mission is in <path>. Read the whole file before acting; it is self-contained."). The file outlives a restart or a hand-over to another harness, and the report goes next to it.
-- Another machine: the session directory is local, so the file must travel. Copy it to that machine's drop folder (`machines.<label>.remote_drop` in the user config, else a folder the run creates under the agent's checkout's parent): `ssh <target> 'mkdir -p <drop>/<run>'`, `scp <file> <target>:<drop>/<run>/`, confirm with `ssh <target> ls -l <drop>/<run>/`. Give the absolute remote path in the prompt. Read the report back over ssh (or `scp` it into the run folder) and delete the drop folder when the run ends; what is not pulled back is lost.
+- Another machine: the session directory is local, so the file must travel. Copy it to that machine's drop folder (`machines.<label>.remote_drop` in the user config, else a folder the run creates next to the agent's checkout): `ssh <target> 'mkdir -p <drop>/<run>'`, `scp <file> <target>:<drop>/<run>/`, confirm with `ssh <target> ls -l <drop>/<run>/`. Give the absolute remote path in the prompt. Read the report back over ssh (or `scp` it into the run folder) and delete the drop folder when the run ends; what is not pulled back is lost.
 
 ## What it holds, in this order
 

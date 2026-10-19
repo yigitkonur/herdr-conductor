@@ -20,10 +20,10 @@ The Bash tool caps a foreground call at 10 minutes and then moves it to the back
 herdr [--machine m] agent wait <name> --timeout 3600000 2>&1; echo "HC_WAIT_EXIT=$?"
 ```
 
-- The task returns its id at once. Write it into the ledger's Waiters line with the agent name, server, pane, marker and last `completion_seq`. Then do other work or end the turn: when the wait exits, the session is woken with a task notification, and its output file holds herdr's JSON and the exit line.
-- `HC_WAIT_EXIT=0`: the agent settled. Read the screen and run the post-settle checklist (references/states.md), compare `completion_seq` with the ledger (greater-than), act, and re-arm a wait only if the work continues.
+- The task returns its id at once. Write it into the ledger's Waiters line with the agent name, server, pane, marker and the `completion_seq` from the last settle before this prompt (or `absent`). Then do other work or end the turn: when the wait exits, the session is woken with a task notification, and its output file holds herdr's JSON and the exit line.
+- `HC_WAIT_EXIT=0`: the agent settled. Read the screen and run the post-settle checklist (references/states.md), compare `completion_seq` with the ledger (greater-than), and act. Re-arm only when the agent is `working` again: a default wait on an `idle` or `done` agent returns at once, so otherwise arm `--until working` first, or use the team-end wait.
 - `HC_WAIT_EXIT=1`: herdr returned a JSON error; read `.error.code`.
-  - `timeout`: read the screen once. If the work runs on, wait again. A 570 s wait once timed out five minutes after the reviewer had written its report, and Herdr showed `idle` a minute later (cause unknown), so every timeout gets that one read.
+  - `timeout`: the agent did not settle in that time. Read the screen once; if it is still working, arm the same wait again. A 570 s wait once timed out five minutes after the reviewer had written its report, and Herdr showed `idle` a minute later (cause unknown), so every timeout gets that one read.
   - `agent_not_found` or `agent_not_running`: the agent exited, was renamed or its pane moved. Re-resolve by name from a fresh snapshot; never adopt a pane by position.
   - anything else (connection, `workspace_not_found`): stop that line, record it, report it.
 - Several agents: one background task each. Each wakes the session on its own; there is no need to batch.
@@ -36,7 +36,7 @@ herdr [--machine m] agent wait <name> --timeout 3600000 2>&1; echo "HC_WAIT_EXIT
 agy and grok read `idle` at their prompt while their subagents still run, and an agy `/teamwork-preview` run settled `idle` and `done` several times before its team finished *(seen 0.9.3; by design since 0.9.4)*. A default wait therefore returns early, and waiting again returns at once. Do this instead:
 
 1. Give the brief a marker the agent prints only after every worker has finished and the result is checked, built from two parts so the typed prompt never contains it whole: "When everything is finished and checked, print on its own line the word `TEAMEND` followed by `-` and `k3x9`" → the screen will show `TEAMEND-k3x9` only when the agent writes it.
-2. Wait for that line in the background, server-side: `herdr [--machine m] pane wait-output <pane_id> --regex 'TEAMEND-k3x9' --timeout 3600000 2>&1; echo "HC_WAIT_EXIT=$?"`. Use a new suffix for every run: `wait-output` searches what is already on screen, so a reused marker matches at once.
+2. Wait for that line in the background, server-side, anchored so it matches only a line that holds the marker alone (an agy that declined to print it quoted it in a sentence, and an unanchored pattern matched that): `herdr [--machine m] pane wait-output <pane_id> --regex '^[^A-Za-z0-9]*TEAMEND-k3x9\s*$' --timeout 3600000 2>&1; echo "HC_WAIT_EXIT=$?"`. Use a new suffix for every run: `wait-output` searches what is already on screen, so a reused marker matches at once.
 3. When it matches, read the screen: no `● Agent(` row (or the harness's equivalent) may be left, and the result must check out on the machine. A team row still running means the marker came early: wait on the agent with `--until working`, then on the default set, and read again.
 
 Local rule sets may already report a running team as `working` (some carry `subagent_working` or `background_agents_working` rules); `agent explain` on that machine says which. The marker wait works either way.
@@ -49,7 +49,7 @@ Local rule sets may already report a running team as `working` (some carry `suba
 
 ## Ending the turn while agents work
 
-Allowed when every working ledger agent has a live waiter task. Before ending, list the Waiters you rely on. If an agent has no live waiter (it was adopted mid-turn, a wait failed, the session runs headless), arm one, or say in the reply which agent is unwatched and how to resume it. Never end the turn on a working agent silently: a supervisor that does loses its agents until someone writes again.
+Allowed when every working ledger agent has a live waiter task, or a `/loop` or cron covers it. Before ending, list the Waiters you rely on. If an agent has no live waiter (it was adopted mid-turn, a wait failed, the session runs headless), arm one, or say in the reply which agent is unwatched and how to resume it. Never end the turn on a working agent silently: a supervisor that does loses its agents until someone writes again.
 
 ## Fallbacks
 

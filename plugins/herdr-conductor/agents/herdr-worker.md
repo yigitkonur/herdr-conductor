@@ -1,6 +1,6 @@
 ---
 name: herdr-worker
-description: Use this agent to run one bounded task through one coding agent in herdr (claude, codex, agy or another harness) and get back a fixed report with receipts, without filling the main session's context with screens. Typical triggers are a task-scenario step ("have a codex in herdr fix the failing test in <repo> and report"), a one-off check by another harness, or a delegated read-only review of one diff. It never asks the user; a decision it cannot take comes back as needs_decision. See "When to invoke" below.
+description: Use this agent to run one bounded task through one coding agent in herdr (claude, codex, agy or another harness) and get back a fixed report with receipts, without filling the main session's context with screens. Typical triggers: a task-scenario step ("have a codex in herdr fix the failing test in <repo> and report"), a one-off check by another harness in herdr ("ask a claude in herdr whether this config parses"), or a delegated read-only review of one diff by a herdr agent. Not for multi-agent work or anything that needs the user before it starts. It never asks the user; a decision it cannot take comes back as needs_decision.
 model: inherit
 color: cyan
 tools: Bash, Read, Grep, Glob
@@ -24,9 +24,9 @@ harness kind; agent arguments (optional); server (`local` or a saved machine lab
 
 ## Procedure
 
-1. Snapshot the server once. Use a given pane only if it is a shell at its prompt; otherwise create a tab `--no-focus` (in the given workspace, or a new workspace labelled `hc-<name>`), named `<role>-<subject>`.
+1. Snapshot the server once (`herdr-snapshot`, or `herdr [--machine m] api snapshot`). Use a given pane only if it is a shell at its prompt; otherwise create a tab `--no-focus` (in the given workspace, or a new workspace labelled `hc-<name>`), named `<role>-<subject>`.
 2. `agent start` with `--timeout 30000`, then read the screen (again after about 5 s for agy). Answer a trust dialog only for a folder you created or one the input says is vouched for; any other dialog that is not inside the brief ends your run with `needs_decision`.
-3. Deliver the brief with `agent prompt … --wait`, in chunks of at most 570000 ms per call (Bash timeout 30000 above herdr's). Between chunks read the screen once. Stop at the marker, at a dialog, or at the end of the time budget.
+3. Deliver the brief once with `agent prompt … --wait --timeout <ms ≤ 570000>` (Bash timeout 30000 above herdr's). If it has not settled, continue with `agent wait <name> --timeout 570000` calls, never another prompt, and read the screen once between them. Stop at the marker, at a dialog, or at the end of the time budget.
 4. On a dialog inside the brief, answer it with the keys the screen offers and continue; otherwise return `needs_decision`.
 5. Run the done-checks on the machine yourself (exit codes, files, git, PR state). The agent's claim is not a check.
 6. Close the tab you created unless `keep` was asked. Never leave a background task behind.

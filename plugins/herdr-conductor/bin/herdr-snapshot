@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compact view of one herdr server: one row per agent (or per pane with --panes).
 
-usage: snapshot.py [--machine LABEL] [--json] [--panes] [--workspace ID]
+usage: herdr-snapshot [--machine LABEL] [--json] [--panes] [--workspace ID]
 
 Runs `herdr [--machine LABEL] api snapshot` once (read-only) and joins agents to
 their workspace and tab labels. Exit 1 with herdr's error on stderr if the call fails.
@@ -31,7 +31,10 @@ def main():
     if p.returncode != 0:
         sys.stderr.write(p.stderr or p.stdout)
         sys.exit(1)
-    snap = json.loads(p.stdout)["result"]["snapshot"]
+    try:
+        snap = json.loads(p.stdout)["result"]["snapshot"]
+    except (ValueError, KeyError, TypeError):
+        sys.exit("unexpected reply from herdr api snapshot: " + (p.stdout or "")[:200])
 
     ws = {w["workspace_id"]: w for w in snap.get("workspaces", [])}
     tabs = {t["tab_id"]: t for t in snap.get("tabs", [])}

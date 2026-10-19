@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v python3 >/dev/null 2>&1 && exec python3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard.py\" || echo '{\"systemMessage\":\"herdr-conductor: guard inactive (python3 not found)\"}'",
+            "command": "command -v python3 >/dev/null 2>&1 && exec python3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard.py\" || true",
             "timeout": 10
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v python3 >/dev/null 2>&1 && exec python3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session_context.py\" || true",
+            "command": "command -v python3 >/dev/null 2>&1 && exec python3 -I \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session_context.py\" || { command -v herdr >/dev/null 2>&1 && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"herdr-conductor: python3 not found, so the guard hook is inactive and herdr-snapshot will not run.\"}}'; true; }",
             "timeout": 15
           }
         ]

@@ -14,8 +14,8 @@ Back to [SKILL.md](../SKILL.md) · dialogs: [dialogs.md](dialogs.md).
 
 ## How its screen behaves
 
-- Starts in about 5 s; trivial prompts take 4–7 s. Answers are `• text` lines, so the marker line reads `• MARKER`; your prompt comes back rewrapped.
-- It redraws one screen (45 lines on one machine; `--lines 200` gave the same 45 from every source); the bottom six to eight lines are the input box and the status bar (context left, quota such as "weekly 8% left"). Read above them. An answer longer than a screen goes to a file and the reply is only its path.
+- Starts in about 5 s; trivial prompts take 3–7 s. On 0.9.5 (codex 0.163) its trust dialog makes `agent start` return `agent_not_ready`, and after `enter` it read `done` with a new `completion_seq` before any prompt (references/dialogs.md). Answers are `• text` lines, so the marker line reads `• MARKER`; your prompt comes back rewrapped.
+- It redraws one screen (45 lines on one machine; `--lines 200` gave the same 45 from every source); the bottom six to eight lines are the input box and the status bar (context left, quota such as "weekly 8% left"; turns still ran while it showed "weekly 0% left", so read an actual error before calling it a quota hit). Read above them. An answer longer than a screen goes to a file and the reply is only its path.
 - Herdr reads its state from the window title (`osc_title_*` rules) and its trust dialog from the top 20 non-empty lines (`trust_directory`). The title is the thread name from the first prompt and goes stale.
 - A prompt sent mid-turn is folded into that turn ("Messages to be submitted after next tool call"); one completion answered both. Send the next task after the agent is ready, once.
 - Next-turn queue with `tab` (`pane send-text` the text, read the composer, `pane send-keys tab`) worked on one codex build: the follow-up ran as its own turn after the active one. It is capability-gated: verify it on the installed build in a scratch pane before relying on it; never press `enter` after `tab` as a fallback.
@@ -29,7 +29,7 @@ Back to [SKILL.md](../SKILL.md) · dialogs: [dialogs.md](dialogs.md).
 
 | key | what happened | what actually stopped the command |
 | --- | --- | --- |
-| `esc` | turn ended `done` within 1 s ("Conversation interrupted"); the command lived on: "1 background terminal running · /ps · /stop" | `agent prompt <t> "/stop"` without `--wait` |
+| `esc` | turn ended `done` within 1 s (0.2 s on codex 0.163, "Conversation interrupted"); the command lived on: "1 background terminal running · /ps · /stop" | `agent prompt <t> "/stop"` without `--wait` |
 | `ctrl+c` | menu "Task is still running": 1 Cancel task / 2 Run in background / 3 Exit; status stayed `working` (`osc_title_working`), so a wait timed out | `enter` (Cancel) ended the turn `done`, command still alive; then `/stop` |
 
 Options 2 and 3 exit codex itself. Confirm on the machine that the process is gone (`pgrep -f`).

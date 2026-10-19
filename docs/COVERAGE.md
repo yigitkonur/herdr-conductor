@@ -10,7 +10,7 @@ Every heading, bold lead-in and live case of the source skill (v5.3.1, written f
 | SKILL.md: 1. Where you are | `skills/herdr/SKILL.md` | rewritten for both cases: inside a herdr pane and outside; the 'HERDR_ENV unset by design' assumption is gone |
 | SKILL.md: 2. Servers: local and saved machines | `skills/herdr/references/machines.md` |  |
 | SKILL.md: 3. Raycast tools | `skills/herdr/references/waiting.md` | rewritten for Claude Code background tasks; shell traps kept |
-| SKILL.md: 4. Discover | `skills/herdr/SKILL.md` | plus scripts/snapshot.py |
+| SKILL.md: 4. Discover | `skills/herdr/SKILL.md` | plus bin/herdr-snapshot |
 | SKILL.md: 5. Agent states | `skills/herdr/SKILL.md` `skills/herdr/references/states.md` |  |
 | SKILL.md: 6. Send work and read results | `skills/herdr/SKILL.md` |  |
 | SKILL.md: 7. Blocked agents and questions | `skills/herdr/SKILL.md` `skills/herdr/references/dialogs.md` |  |

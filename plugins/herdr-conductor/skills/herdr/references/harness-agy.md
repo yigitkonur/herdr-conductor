@@ -22,11 +22,14 @@ Back to [SKILL.md](../SKILL.md) · dialogs: [dialogs.md](dialogs.md).
 
 ## Team runs
 
+On 0.9.5 with agy 1.4.2 a `/teamwork-preview` brief was again `blocked` at "Question 1/1" (launch the drafted team; `enter` took the recommended option), then its worker stopped right away with `Individual quota reached` (429) while the leader's own status bar still showed room; the leader wrote the file itself, reported the failure in prose, settled `idle` with no `completion_seq`, and declined to print the end marker. Quota can hit a team worker alone.
+
+
 `/teamwork-preview <task>` first wrote a prompt draft and asked "Question 1/1" how to proceed (`blocked`; `enter` took the recommended small team), then ran an implementer, three reviewers and a victory auditor: about 22 minutes for a one-line file *(seen 0.9.3)*. While the team ran, Herdr settled `idle` once and `done` three times, each gone a moment later; since 0.9.4 agy reads `idle` at its prompt while subagents run by design. The run is over when the team-end marker appeared (references/waiting.md), no `● Agent(` row is left on screen, and the result checks out on the machine.
 
 ## How its screen behaves
 
-agy keeps its transcript from the banner on: `▸ Thought for …` lines, `● Bash(…)` tool lines, then plain answer lines, above a `>` input box and a status line (context, 5H and 7D quota). Herdr reads `working` from its command lines and falls back to `idle` when no rule matches.
+agy keeps its transcript from the banner on (the banner names the signed-in account and model): `▸ Thought for …` lines, `● Bash(…)` tool lines, then plain answer lines, above a `>` input box and a status line (context, 5H and 7D quota). Herdr reads `working` from its command lines and falls back to `idle` when no rule matches.
 
 ## Quota
 
@@ -43,7 +46,7 @@ So after every wait on an agy agent, and whenever one seems stuck, run `herdr [-
 **Recovery, in order** (the autonomy level decides how far the run goes alone; references/autonomy.md):
 
 1. If the machine has an account rotation command (`machines.<label>.rotate_command` in the user config), run it there; a listing-only command just reads. Without one, rotation is the user's.
-2. A running agy keeps its old login, so restart it in place: note `.agent_session.value` from `agent get` (the conversation id), then `agent send-keys <t> ctrl+c` until `agent get` says `agent_not_found` (three presses on 1.2.16: the first interrupted the turn, the third quit and printed `agy --conversation=<id>`). `pane run <pane> 'clear'`, then `agent start <name> --kind agy --pane <same> -- <same args> --conversation=<id>`, wait about 5 s, answer the trust dialog if it shows, and prompt "continue from where you left off. resume any failed tasks/subagents if possible, otherwise restart them. keep going until everything is fully complete." An 8-step task cut at step 2 finished from step 2, nothing repeated. The quota line stays the last thing on screen until a new prompt arrives, so Herdr can read the resumed agy `blocked` and `agent prompt` return `agent_blocked`: type the prompt with `pane send-text <pane> "<prompt>"`, then `pane send-keys <pane> enter`, and confirm `working` on screen.
+2. A running agy keeps its old login, so restart it in place: note `.agent_session.value` from `agent get` (the conversation id), then `agent send-keys <t> ctrl+c` until `agent get` says `agent_not_found` (three presses on 1.2.16: the first interrupted the turn, the third quit and printed `agy --conversation=<id>`). `pane run <pane> 'clear'`, then `agent start <name> --kind agy --pane <same> -- <same args> --conversation=<id>`, wait about 5 s, answer the trust dialog if it shows, and prompt "continue from where you left off. resume any failed tasks/subagents if possible, otherwise restart them. keep going until everything is fully complete." An 8-step task cut at step 2 finished from step 2, nothing repeated. The quota line stays the last thing on screen until a new prompt arrives, so Herdr can read the resumed agy `blocked` and `agent prompt` return `agent_blocked`. Only when a visible read shows the quota line, an empty `>` input box and no key footer, type the prompt with `pane send-text <pane> "<prompt>"`, then `pane send-keys <pane> enter`, and confirm `working` on screen; any other screen is a dialog (references/dialogs.md).
 3. Out again, or nothing to rotate: switch harness per the routing (or ask): quit agy as in step 2, start the other harness in that pane, and give it the brief without agy's slash commands, plus "the previous agent stopped mid-way; read git log and finish".
 4. Or wait for the reset: a one-shot `CronCreate` at the reset time that resumes this step (references/waiting.md).
 

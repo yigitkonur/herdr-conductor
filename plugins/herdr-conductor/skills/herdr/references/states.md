@@ -22,8 +22,8 @@ Back to [SKILL.md](../SKILL.md). Read before treating `idle` or `done` as finish
 
 ## `completion_seq` and `state_change_seq`
 
-- `completion_seq` equals the agent's `state_change_seq` at the moment Herdr saw a turn end (both 278), and it grows by more than one per turn (278 → 281 across one prompt): compare with greater-than, never "+1" *(seen 0.9.3)*.
-- It is absent while the agent works and before its first finished turn. A `done` that turned `idle` kept it, and that change did not bump `state_change_seq`. An `idle` reached straight from `working` had none (agy mid-run, and the end of a finished agy team run), so its absence does not say the work is unfinished.
+- `completion_seq` equals the agent's `state_change_seq` at the moment Herdr saw a turn end (both 278), and it can grow by more than one per turn (278 → 281 across one prompt): compare with greater-than, never "+1" *(seen 0.9.3)*. Record the value from the settle before each prompt as the baseline: on 0.9.5 a codex read `done` with a new `completion_seq` (339) right after its trust dialog was answered, before any prompt.
+- It is absent while the agent works and before its first finished turn (claude after its trust dialog: `idle`, none). A `done` that turned `idle` kept it, and that change did not bump `state_change_seq`. An `idle` reached straight from `working` had none (agy mid-run, and the end of a finished agy team run), so its absence does not say the work is unfinished.
 - Pane `revision` and `terminal_title` stayed the same across a turn; only `completion_seq` tracked it.
 - A value above the ledger's says Herdr saw a turn end. Whether **the work** ended is the screen's to say: during an agy team run Herdr settled `idle`, then `done` again and again, each `done` with a new `completion_seq` (338, 342, 344), while the team's `● Agent(…)` rows still ran under the input box *(seen 0.9.3)*. A settle can be a single frame.
 - Unset fields are omitted, not null (`name`, `completion_seq`, `label`): read them with `.get`.
@@ -35,7 +35,7 @@ Back to [SKILL.md](../SKILL.md). Read before treating `idle` or `done` as finish
 1. A footer naming keys ("Enter to select", "Enter to confirm · Esc to cancel", "enter Submit", codex `y`/`p`/`esc`) → a dialog, whatever the status (references/dialogs.md).
 2. agy: `quota reached`, `Resets in …`, `5H: 0%` in the status bar → quota (references/harness-agy.md).
 3. Team rows still running (agy `● Agent(`, claude "Waiting for N dynamic workflow", claude background agents) → the leader settled, the team did not (references/waiting.md, team end).
-4. The marker you asked for, on the answer's own line (codex `• MARKER`), after the last prompt.
+4. The marker you asked for, alone on the answer's own line (codex `• MARKER`, claude `⏺ MARKER`), after the last prompt. A marker quoted inside a sentence is not the marker: an agy that declined to print it explained why and quoted it.
 5. A question in prose → a finished turn; answer it with an ordinary prompt.
 6. An error line (400, auth, rate limit) → the turn ended without the work.
 

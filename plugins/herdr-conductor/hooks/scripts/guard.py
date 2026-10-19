@@ -6,8 +6,10 @@ session management, interactive clients, forced worktree removal, group closes,
 killing herdr, approval-bypass flags in agent arguments). Everything else passes.
 Heredoc bodies and quoted brief text are data, not commands: only words at
 command position are judged, also inside `sh -c`, `ssh <target> '…'` and `$(…)`.
-Exceptions: `guard_allow:` prefixes in ~/.config/herdr-conductor/config.md.
-Fails open: on any parsing problem the command passes.
+Text typed into a pane (`pane run`, `pane send-text`) is judged as a command too.
+Exceptions: `guard_allow:` prefixes in ~/.config/herdr-conductor/config.md, matched
+per simple command. Fails open: on any parsing problem the command passes. It reads
+the command line only; a command assembled inside a program is not seen.
 """
 import json
 import os
@@ -20,7 +22,7 @@ SHELLS = {"sh", "bash", "zsh", "dash", "ksh"}
 SSH_OPTS_WITH_ARG = set("-o -p -i -l -F -J -E -b -c -D -L -R -W -S -O -Q -w -B -I -m -e".split())
 HERDR_GLOBAL_WITH_ARG = {"--session", "--machine", "--remote", "--remote-keybindings"}
 SAFE_FLAGS = {"--version", "-V", "--help", "-h", "--skill", "--default-config"}
-BYPASS = re.compile(r"(^--dangerously|bypassPermissions|^--yolo$)")
+BYPASS = re.compile(r"(^--dangerously|bypassPermissions|^--yolo$|danger-full-access)")
 SEP = {";", "&&", "||", "|", "&", "\n", "(", ")", "|&", ";;"}
 
 
@@ -102,6 +104,10 @@ def judge_herdr(args):
         return "worktree remove --force deletes uncommitted work; that decision is the user's"
     if (group, sub) == ("workspace", "close") and "--group" in tail:
         return "workspace close --group closes every linked worktree workspace and its agents"
+    if group == "pane" and sub in {"run", "send-text"} and len(tail) > 1:
+        r = judge_text(" ".join(tail[1:]), 1)
+        if r:
+            return f"text typed into a pane would run: {r}"
     if (group, sub) == ("agent", "start") and "--" in tail:
         agent_args = tail[tail.index("--") + 1:]
         for k, a in enumerate(agent_args):
@@ -159,23 +165,29 @@ def judge(cmd, depth=0):
     return None
 
 
+ALLOW = []
+
+
 def judge_text(text, depth=0):
     for cmd in split_commands(strip_heredocs(text)):
+        flat = " ".join(cmd)
+        if any(flat.startswith(p) for p in ALLOW):
+            continue
         r = judge(cmd, depth)
         if r:
             return r
     return None
 
 
-def allowed(command):
+def load_allow():
     path = os.path.expanduser("~/.config/herdr-conductor/config.md")
     try:
         text = open(path, encoding="utf-8").read()
     except OSError:
-        return False
+        return []
     m = re.match(r"^---\n(.*?)\n---", text, re.S)
     if not m:
-        return False
+        return []
     prefixes, inside = [], False
     for line in m.group(1).splitlines():
         if re.match(r"^guard_allow:\s*$", line):
@@ -187,8 +199,7 @@ def allowed(command):
                 prefixes.append(item.group(1).strip("'\""))
             elif line.strip() and not line.startswith(" "):
                 inside = False
-    flat = " ".join(command.split())
-    return any(flat.startswith(p) for p in prefixes if p)
+    return [" ".join(p.split()) for p in prefixes if p.strip()]
 
 
 def main():
@@ -197,10 +208,11 @@ def main():
         command = data.get("tool_input", {}).get("command", "")
         if not isinstance(command, str) or not re.search(r"herdr|pkill|killall", command):
             return
+        ALLOW.extend(load_allow())
         reason = judge_text(command)
     except Exception:
         return  # fail open
-    if not reason or allowed(command):
+    if not reason:
         return
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "PreToolUse",

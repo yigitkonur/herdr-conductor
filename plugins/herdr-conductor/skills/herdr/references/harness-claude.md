@@ -12,6 +12,7 @@ Back to [SKILL.md](../SKILL.md) · dialogs: [dialogs.md](dialogs.md).
 
 ## How its screen behaves
 
+- Answers are `⏺ text` lines, so a marker line reads `⏺ MARKER`; your prompt comes back as `❯ …`.
 - Herdr reads its state from the prompt box (`live_prompt_box` idle; `live_blocked_form` and `interactive_question_blocked` blocked). A trivial turn took 2 s and still came back `done` from `prompt --wait`.
 - It leaves its transcript in scrollback unless its TUI is fullscreen; fullscreen, `recent` gave only the 20 visible rows. The whole turn is then in `~/.claude/projects/<cwd with / as ->/<session>.jsonl` on that machine (`agent get` → `.agent_session.value` is the session id).
 - Claude's background work (Workflows, background agents, teammates) can outlive the turn that started it. Started with `--settings '{"ultracode":true}'`, claude labelled its input box "ultracode"; a small task ran as a Workflow, claude printed the marker once as the workflow started and ended that turn, then woke on the workflow's notification and printed the answer and the marker again 28 s later; a wait `--until done --until blocked` started before the first marker returned only after the second *(seen 0.9.3)*. So the run is over at the last marker with no "Waiting for N dynamic workflow" line on screen. Newer rule sets read such waits as `working` (`dynamic_workflow_prompt`, `background_agents_working`, `waiting_for_teammates_working`); check `agent explain` on that machine.
