@@ -20,12 +20,13 @@ The Bash tool caps a foreground call at 10 minutes and then moves it to the back
 herdr [--machine m] agent wait <name> --timeout 3600000 2>&1; echo "HC_WAIT_EXIT=$?"
 ```
 
-- The task returns its id at once. Write it into the ledger's Waiters line with the agent name, server, pane, marker and the `completion_seq` from the last settle before this prompt (or `absent`). Then do other work or end the turn: when the wait exits, the session is woken with a task notification, and its output file holds herdr's JSON and the exit line.
-- `HC_WAIT_EXIT=0`: the agent settled. Read the screen and run the post-settle checklist (references/states.md), compare `completion_seq` with the ledger (greater-than), and act. Re-arm only when the agent is `working` again: a default wait on an `idle` or `done` agent returns at once, so otherwise arm `--until working` first, or use the team-end wait.
+- The task returns its id at once. Write it into the ledger's Waiters line with the agent name, server, pane, marker and the last handled `completion_seq` (the value from the settle before this prompt, or `absent`; update it each time a notification is handled). Then do other work or end the turn: when the wait exits, the session is woken with a task notification, and its output file holds herdr's JSON and the exit line.
+- `HC_WAIT_EXIT=0`: the agent settled. Read the screen and run the post-settle checklist (references/states.md), compare `completion_seq` with the ledger (greater-than), and act. An agent with nothing new to run gets no waiter, since a default wait matches its current `idle` or `done` and returns at once. After a new prompt confirm delivery (`--until working`) and arm the default wait; for a team run use the team-end wait.
 - `HC_WAIT_EXIT=1`: herdr returned a JSON error; read `.error.code`.
-  - `timeout`: the agent did not settle in that time. Read the screen once; if it is still working, arm the same wait again. A 570 s wait once timed out five minutes after the reviewer had written its report, and Herdr showed `idle` a minute later (cause unknown), so every timeout gets that one read.
+  - `timeout`: the agent did not settle in that time. Read the screen once; if it is still working, arm the same wait again. A 570 s wait once timed out five minutes after the reviewer had written its report, and Herdr showed `idle` a minute later (cause unknown), so every timeout gets that one read. Two timeouts in a row with the screen unchanged is no progress (the decision table in references/autonomy.md): interrupt through the harness's task control and send one follow-up, else report; never a third silent re-arm.
   - `agent_not_found` or `agent_not_running`: the agent exited, was renamed or its pane moved. Re-resolve by name from a fresh snapshot; never adopt a pane by position.
-  - anything else (connection, `workspace_not_found`): stop that line, record it, report it.
+  - a connection error on a `--machine` wait: run `herdr machine status <label> --json`. If the machine is connected, `agent get` and re-arm once; the same failure twice is reported.
+  - anything else (`workspace_not_found`, an unknown code): stop that line, record it, report it.
 - Several agents: one background task each. Each wakes the session on its own; there is no need to batch.
 - `TaskStop <task_id>` ends a wait without touching the agent. Stop an agent's waiters before closing its tab or workspace: a wait outlived the workspace it watched, and a wait on a moved pane ends `agent_not_running`.
 - Stop only waiters this session started. Other sessions may wait on the same agents; all of them return.
@@ -43,7 +44,8 @@ Local rule sets may already report a running team as `working` (some carry `suba
 
 ## After compaction, resume or a restart
 
-- Background tasks do not survive `--resume` or a new session, and after compaction the ids in the ledger may point at nothing. Treat every Waiters line as unknown: `agent get <name>`, compare `completion_seq`, read the screen, then re-arm. Never resend a prompt because its waiter is gone.
+- **After `--resume` or a new session** background tasks are gone. Treat every Waiters line as unknown: `agent get <name>`, compare `completion_seq`, read the screen, then re-arm. Never resend a prompt because its waiter is gone.
+- **After a compaction** the process lives on, and a wait armed before `/compact` woke the session afterwards (herdr 0.9.5, claude 2.1.303). Keep the Waiters as live and do not re-arm them: a second waiter on one agent doubles every notification. A notification whose `completion_seq` is not above the last handled value in the ledger is a duplicate. An agent that settled with no notification is a lost waiter: `agent get`, read the screen, re-arm.
 - A step whose state is short of `completed` (references/ledger.md) gets `agent get`, a visible read and a marker check before anything is sent.
 - A wait silent well past its `--timeout` is lost: `agent get`, then re-arm.
 
@@ -61,7 +63,9 @@ Allowed when every working ledger agent has a live waiter task, or a `/loop` or 
 
 AskUserQuestion blocks the session while it is open, and notifications from background waits are very likely held until it is answered (not yet observed: UNVERIFIED), so every other agent would finish or block unattended. Ask only when no ledger agent is working or nothing independent is left. Otherwise write the question under "Waiting on the user" in the ledger, keep the other agents moving, and ask the collected questions together when the session would otherwise stop.
 
-## Shell traps (zsh)
+## Shell traps (when the shell is zsh)
+
+Under bash `$PIPESTATUS` works and the rest of this list is the same.
 
 - `$PIPESTATUS` is empty in zsh (use `setopt pipefail` and `${pipestatus[1]}`). A trailing `| head` hides the exit code. Any command in between, `echo` included, resets `$?`: take `rc=$?` right after the command.
 - `${=VAR}` splits a variable into words; an unmatched glob is an error.

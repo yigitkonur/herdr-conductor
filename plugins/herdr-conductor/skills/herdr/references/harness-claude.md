@@ -8,7 +8,7 @@ Back to [SKILL.md](../SKILL.md) · dialogs: [dialogs.md](dialogs.md).
 - Never `claude -p` or `--print`: there is no interactive agent to wait on.
 - claude brings its own settings: on one machine `permissions.defaultMode` was `bypassPermissions` and `tui` was `fullscreen` with no flag typed, so it ran without approval dialogs and kept no scrollback. Read the status line after start; put scope into the brief.
 - First run in a folder: `agent_not_ready` at the trust dialog, `down enter` (dialogs.md).
-- A worker claude may have this very plugin installed. Its brief says it is a worker and must not start or control herdr agents unless the brief asks for it (references/briefs.md).
+- A worker claude may have this very plugin installed. Its brief says it is a worker under a conductor: it does the work itself, ignores the herdr-conductor skill and must not start or control herdr agents unless the brief asks for it (references/briefs.md).
 
 ## How its screen behaves
 
@@ -19,7 +19,7 @@ Back to [SKILL.md](../SKILL.md) · dialogs: [dialogs.md](dialogs.md).
 
 ## Slash commands that manage claude itself
 
-`/plugin marketplace add <owner/repo>` runs straight away, with no menu, and reloads plugins by itself. `/plugin install <name>@<marketplace>` opens a scope menu ("Install for you (user scope)" is the highlighted first row; footer "Enter to select · Esc to go back"); `enter` takes user scope and prints "Installed … Plugin is now active." *(claude 2.1.303)*. They start no model turn, so send them without `--wait`. Herdr read both screens `done`, with a new `completion_seq` for each command, never `blocked`: the footer is the only sign of the menu. Restart claude after installing so hooks and the session-start line load (references/waiting.md has the restart recipe).
+`/plugin marketplace add <owner/repo>` runs straight away, with no menu, and reloads plugins by itself. `/plugin install <name>@<marketplace>` opens a scope menu ("Install for you (user scope)" is the highlighted first row; footer "Enter to select · Esc to go back"); `enter` takes user scope and prints "Installed … Plugin is now active." *(claude 2.1.303)*. They start no model turn, so send them without `--wait`. Herdr read both screens `done`, with a new `completion_seq` for each command, never `blocked`: the footer is the only sign of the menu. Restart claude after installing so hooks and the session-start line load: `agent prompt <name> "/exit"` without `--wait`, wait until `agent get` says `agent_not_found` (the pane is a shell again), `clear`, `agent start` again and read the screen.
 
 ## Questions and grilling
 

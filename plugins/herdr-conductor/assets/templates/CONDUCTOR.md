@@ -11,6 +11,8 @@ routing:
 notify: none
 research: subagents
 review_rounds: 3
+pr: draft                               # draft | ready (ready requests reviews from real people on a shared repo)
+max_parallel: 3                         # agents working at once
 ---
 
 # <project>

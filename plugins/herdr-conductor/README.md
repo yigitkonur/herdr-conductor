@@ -30,7 +30,7 @@ Then run `/herdr-conductor:setup` once: it checks herdr, the server, integration
 | `/herdr-conductor:watch [local\|<machine>\|all] [--every <min>]` | A compact table of every agent with flags for blocked, quota, finished; optional recurring sweep. |
 | `/herdr-conductor:setup [doctor\|config\|project]` | Doctor, user config, project card. |
 | agent `herdr-worker` | A subagent that runs one task through one herdr agent and returns a fixed report with receipts. It never asks the user; a decision it cannot take comes back as `needs_decision`. |
-| hook PreToolUse(Bash) | The guard: denies herdr commands that stop or replace the server, change machines or sessions, open interactive clients, force-remove worktrees, close worktree groups, kill herdr, or pass approval-bypass flags to agents. Quoted brief text and heredocs are data and pass. |
+| hook PreToolUse(Bash) | The guard: denies herdr commands that stop or replace the server, change machines or sessions, open interactive clients, force-remove worktrees, close worktree groups, kill herdr, pass approval-bypass flags to agents, or prompt, type into or close the session's own pane, tab or workspace. Quoted brief text and heredocs are data and pass. |
 | hook SessionStart | One context line, only inside a herdr pane or in a project with a session directory: herdr versions, which pane is this session, the session directory, and after a resume or compaction the open run's waiters to re-arm. |
 | `bin/herdr-snapshot` | On the Bash PATH while the plugin is enabled: `herdr api snapshot` as one row per agent with workspace and tab labels, status and `completion_seq`. |
 
@@ -65,13 +65,13 @@ User config `~/.config/herdr-conductor/config.md` (template in `assets/templates
 | `research` | `subagents` | `herdr-only`: even fact finding goes to herdr agents |
 | `review_rounds` | `3` | review → fix rounds before the user decides |
 
-Project card `CONDUCTOR.md` in the session directory (template in `assets/templates/CONDUCTOR.md`): repositories, checks that prove work, what "done" means, off-limits, autonomy, and the lists `Pre-authorized actions`, `Allowed follow-up work`, `Escalate always`, `Standing answers`.
+Project card `CONDUCTOR.md` in the session directory (template in `assets/templates/CONDUCTOR.md`): repositories, checks that prove work, what "done" means, off-limits, autonomy, `pr` (draft or ready PRs, draft by default), `max_parallel` (agents at once, 3 by default), and the lists `Pre-authorized actions`, `Allowed follow-up work`, `Escalate always`, `Standing answers`.
 
 Session directory resolution: adopt an existing project (a CONDUCTOR.md listing this repository, the pointer file `~/.local/state/herdr-conductor/projects.tsv`, or a match under `projects_root`); otherwise create one under `projects_root` or in the repository; ask when ambiguous.
 
 ## Verified and not yet verified
 
-Verified live on herdr 0.9.5 (claude 2.1.302, codex 0.163, agy 1.4.2; local and one saved machine): background-wait wake-up, the guard (synthetic and live), the SessionStart line at startup and on resume, the quick, task, delegate and project scenarios, cross-harness review, worktree refusals, a file brief through a drop folder on a saved machine, and the `claude plugin eval` suite (4 of 4 cases). Not yet verified: pull requests and `gh`, a live `/compact`, the delegate agent's long `running` path, an agy team run with workers actually running, agy quota recovery, and whether a blocking question holds back wait notifications. `tests/CASES.md` in the repository lists each case and its status.
+Verified live on herdr 0.9.5 (claude 2.1.302, codex 0.163, agy 1.4.2; local and one saved machine): background-wait wake-up, a wait surviving `/compact`, the guard (synthetic and live, own-pane denial included), the SessionStart line at startup and on resume, the quick, task, delegate and project scenarios, cross-harness review, worktree refusals, a file brief through a drop folder on a saved machine, and the `claude plugin eval` suite (two of its four cases separate the plugin from a no-plugin baseline; the timeout-recovery case does not yet, see `tests/CASES.md` N11). Not yet verified: pull requests and `gh`, the delegate agent's long `running` path, an agy team run with workers actually running, agy quota recovery, and whether a blocking question holds back wait notifications. `tests/CASES.md` in the repository lists each case and its status.
 
 ## herdr 0.9.4 and 0.9.5 changes reflected
 

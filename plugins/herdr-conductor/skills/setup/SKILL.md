@@ -14,7 +14,7 @@ Argument: $ARGUMENTS (empty means all three parts, in order).
 
 Run each check once and print one line per check: ok, warn or fail, with the evidence.
 
-1. `command -v herdr`, `herdr --version`, `herdr status client --json`, `herdr status server --json` (running, `compatible`, version and protocol of each; a client newer than the server is a warn).
+1. `command -v herdr`, `herdr --version`, `herdr status client --json`, `herdr status server --json` (running, `compatible`, version and protocol of each; a client newer than the server is a warn, and so is any herdr older than 0.9.5, which this plugin's text was written for).
 2. `herdr config check`.
 3. `herdr integration status`: list the outdated ones. Never install on your own; offer the user `herdr integration install <agent>` for each (it rewrites that harness's hook config) and run it only after a yes.
 4. `herdr machine list --json`, then `herdr machine status --json` (checks without prompting for authentication). A machine that needs a login: the user runs `herdr machine reconnect <label>` themselves.
@@ -28,4 +28,4 @@ Create or update `~/.config/herdr-conductor/config.md` from `${CLAUDE_PLUGIN_ROO
 
 ## project
 
-Resolve the session directory for the current repository (`${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/ledger.md`); create it if none exists (never at `~`, `/` or `projects_root` itself). Fill CONDUCTOR.md from `${CLAUDE_PLUGIN_ROOT}/assets/templates/CONDUCTOR.md`: find the facts yourself (remote URL, default branch, test and build commands from the repository's own docs and scripts) and ask only the decisions: autonomy, pre-authorized actions, escalate-always items, standing answers. Add the repository key and session directory to `~/.local/state/herdr-conductor/projects.tsv` when the directory is outside the repository; add `.herdr-conductor/` to the repository's exclude file (`git rev-parse --git-path info/exclude`) when it is inside.
+Resolve the session directory for the current repository (`${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/ledger.md`); create it if none exists (never at `~`, `/` or `projects_root` itself). Fill CONDUCTOR.md from `${CLAUDE_PLUGIN_ROOT}/assets/templates/CONDUCTOR.md`: find the facts yourself (remote URL, default branch, test and build commands from the repository's own docs and scripts) and ask only the decisions: autonomy, pre-authorized actions, escalate-always items, standing answers. Add the repository key and session directory to `~/.local/state/herdr-conductor/projects.tsv` when the directory is outside the repository; add `.herdr-conductor/` to the repository's exclude file (`git rev-parse --git-path info/exclude`) when it is inside. Inside means the main checkout, never a linked worktree (ledger.md). Decisions to ask also include `max_parallel` and `pr` (draft or ready).

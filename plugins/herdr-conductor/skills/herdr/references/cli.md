@@ -22,6 +22,7 @@ Back to [SKILL.md](../SKILL.md). For herdr 0.9.5 (18 command groups, 105 leaf co
 
 ## Limits and defaults
 
+- Every timeout (`--timeout`, an `--until` wait) is in milliseconds.
 - `agent start --kind`: claude, codex, agy and 21 others; `herdr agent start --help` lists them.
 - `agent start --timeout`: default 30000 ms, more than 3000 and at most 300000.
 - `agent prompt`: an agent already `blocked` gets `agent_blocked` before any input is sent. With `--wait`, a submission from a non-working state that reaches neither `working` nor `blocked` within 5000 ms gets `agent_prompt_stalled`; a caller `--timeout` that runs out first gives `timeout`; turns are not tracked. Seen: `/stop` sent to a codex whose turn had just ended came back `agent_prompt_stalled` and ran anyway; `--timeout 0` was never typed; `--timeout 1000` timed out in 1.7 s and was answered (T3). At codex's trust dialog (`blocked`) the prompt got `agent_blocked` in 0.8 s, screen byte-identical (T13); at agy's, which reads `idle`, its Enter answered the dialog, the text was lost, and `agent_prompt_stalled` came after 12.7 s (T15).
@@ -64,6 +65,7 @@ Exit 1 with `{"error":{"code":…,"message":…}}` on stderr (stdout is empty, s
 | `agent_not_running` | a wait was in progress when its pane moved | re-resolve by name |
 | `agent_blocked` | prompt refused, nothing sent | read the dialog |
 | `agent_not_ready` | start returned at a dialog (claude's trust dialog) | read and answer it; the name stays usable |
+| `agent_name_taken` | `agent start` with a name a live agent holds; nothing was typed, and the message names the holder's pane | pick a free name from the snapshot; never take over the holder |
 | `agent_prompt_stalled` | no `working` or `blocked` within 5 s | `agent get` and a read; may or may not have been delivered |
 | `agent_not_idle` | `--lines` larger than a working codex's screen | read `--source visible` |
 | `invalid_key` | one key name in the list is unknown | nothing was sent; fix the list |

@@ -16,20 +16,20 @@ You are a herdr worker. You run exactly one task through exactly one coding agen
 
 ## First
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/herdr/SKILL.md`, then the reference files it names for the harness you start (dialogs.md and harness-<kind>.md in `${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/`). Everything there applies to you, including the traps and the safety rules.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/herdr/SKILL.md`, then the reference files it names for the harness you start (dialogs.md and harness-<kind>.md in `${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/`). Everything there applies to you, including the traps and the safety rules. Files you read with Read show the text `${CLAUDE_PLUGIN_ROOT}` literally where they name the plugin: use the root above in its place.
 
 ## Input you expect
 
-harness kind; agent arguments (optional); server (`local` or a saved machine label); the folder, worktree spec or a given pane; the brief; done-checks (commands and expected output); a marker; a time budget (default 20 minutes); `keep` (leave the agent open) or not. If something essential is missing, return `failed` with what is missing; do not guess a folder or a harness.
+harness kind; agent arguments (optional); server (`local` or a saved machine label); the folder, worktree spec or a given pane; `trusted:` (folders whose trust dialog you may answer, as the trust rule in autonomy.md allows); the brief; done-checks (commands and expected output); a marker (two parts, so the typed brief never holds it whole); a time budget (default 20 minutes); `keep` (leave the agent open) or not. If something essential is missing, return `failed` with what is missing; do not guess a folder or a harness.
 
 ## Procedure
 
-1. Snapshot the server once (`herdr-snapshot`, or `herdr [--machine m] api snapshot`). Use a given pane only if it is a shell at its prompt; otherwise create a tab `--no-focus` (in the given workspace, or a new workspace labelled `hc-<name>`), named `<role>-<subject>`.
-2. `agent start` with `--timeout 30000`, then read the screen (again after about 5 s for agy). Answer a trust dialog only for a folder you created or one the input says is vouched for; any other dialog that is not inside the brief ends your run with `needs_decision`.
+1. Snapshot the server once (`herdr-snapshot`, or `herdr [--machine m] api snapshot`). Use a given pane only if it is a shell at its prompt; otherwise create a tab `--no-focus` (in the given workspace, or a new workspace labelled `hc-<name>`), named `<role>-<subject>` (`agent_name_taken` means pick another name).
+2. `agent start` with `--timeout 30000`, then read the screen (again after about 5 s for agy). Answer a trust dialog only for a folder you created or one listed in `trusted:`; any other dialog that is not inside the brief ends your run with `needs_decision`.
 3. Deliver the brief once with `agent prompt … --wait --timeout <ms ≤ 570000>` (Bash timeout 30000 above herdr's). If it has not settled, continue with `agent wait <name> --timeout 570000` calls, never another prompt, and read the screen once between them. Stop at the marker, at a dialog, or at the end of the time budget.
 4. On a dialog inside the brief, answer it with the keys the screen offers and continue; otherwise return `needs_decision`.
 5. Run the done-checks on the machine yourself (exit codes, files, git, PR state). The agent's claim is not a check.
-6. Close the tab you created unless `keep` was asked. Never leave a background task behind.
+6. Close the tab you created only when the status is `done` with the checks passed (or `failed` before any agent started) and `keep` was not asked. For `needs_decision`, `running` and `blocked` leave it open (`left_open: yes`): the conductor needs that screen. Never leave a background task behind.
 
 ## Never
 

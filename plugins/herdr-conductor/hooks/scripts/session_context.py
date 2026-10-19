@@ -39,31 +39,50 @@ def field(fm, key):
     return m.group(1).strip("'\"") if m else ""
 
 
+def norm(url):
+    url = re.sub(r"^(https?://|ssh://|git@)", "", url.strip())
+    url = re.sub(r"\.git$", "", url).replace(":", "/", 1) if "://" not in url else url
+    return url.rstrip("/")
+
+
 def repo_key(cwd):
     url = run(["git", "remote", "get-url", "origin"], cwd)
     if url:
-        url = re.sub(r"^(https?://|ssh://|git@)", "", url)
-        url = re.sub(r"\.git$", "", url).replace(":", "/", 1) if "://" not in url else url
-        return url.rstrip("/")
+        return norm(url)
     common = run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd)
     return common or ""
 
 
+def is_card(path, key):
+    """A CONDUCTOR.md counts only with a `repos:` block, and when it lists keys, one must be this repository's."""
+    fm = frontmatter(path)
+    if not re.search(r"^repos:", fm, re.M):
+        return False
+    keys = [norm(k) for k in re.findall(r"key:[ \t]*(\S+)", fm)]
+    return not (keys and key and norm(key) not in keys)
+
+
 def session_dir(cwd, key):
     root = run(["git", "rev-parse", "--show-toplevel"], cwd)
+    common = run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd)
+    main = os.path.dirname(common) if os.path.basename(common) == ".git" else ""  # a linked worktree's main checkout
     projects_root = os.path.expanduser(field(frontmatter(CONFIG), "projects_root") or "")
     stop = {os.path.expanduser("~"), "/", projects_root.rstrip("/")}
     d = cwd
     while True:
         card = os.path.join(d, "CONDUCTOR.md")
-        if os.path.isfile(card):
+        if os.path.isfile(card) and is_card(card, key):
             return d
         side = os.path.join(d, ".herdr-conductor", "CONDUCTOR.md")
-        if os.path.isfile(side):
+        if os.path.isfile(side) and is_card(side, key):
             return os.path.dirname(side)
         if (root and os.path.samefile(d, root)) or d in stop or os.path.dirname(d) == d:
             break
         d = os.path.dirname(d)
+    if main:
+        side = os.path.join(main, ".herdr-conductor", "CONDUCTOR.md")
+        if os.path.isfile(side) and is_card(side, key):
+            return os.path.dirname(side)
     if key and os.path.isfile(STATE):
         for line in open(STATE, encoding="utf-8"):
             parts = line.rstrip("\n").split("\t")
@@ -137,9 +156,15 @@ def main():
                 owner = ""
             mine = bool(owner) and owner == sid
             w = waiters(open(led, encoding="utf-8").read())
-            if source in ("resume", "compact") and (mine or not owner):
+            if source == "resume" and (mine or not owner):
                 parts.append(f"open run {led} (last written {age} min ago); background waiters did not "
                              "survive: for each Waiter run `herdr agent get <name>`, compare completion_seq, "
+                             "read the screen, then re-arm. Waiters: " + (" | ".join(w) or "none"))
+            elif source == "compact" and (mine or not owner):
+                parts.append(f"open run {led} (last written {age} min ago); this process lives on, so background "
+                             "waiters armed before the compaction usually still run: do not re-arm them. A "
+                             "notification whose completion_seq is not above the ledger's is a duplicate. An agent "
+                             "that settled with no notification is a lost waiter: `herdr agent get <name>`, "
                              "read the screen, then re-arm. Waiters: " + (" | ".join(w) or "none"))
             else:
                 parts.append(f"open run {led} owned by {'another session' if owner and not mine else 'an unknown session'} "

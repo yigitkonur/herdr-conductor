@@ -24,6 +24,12 @@ HERDR_GLOBAL_WITH_ARG = {"--session", "--machine", "--remote", "--remote-keybind
 SAFE_FLAGS = {"--version", "-V", "--help", "-h", "--skill", "--default-config"}
 BYPASS = re.compile(r"(^--dangerously|bypassPermissions|^--yolo$|danger-full-access)")
 SEP = {";", "&&", "||", "|", "&", "\n", "(", ")", "|&", ";;"}
+# Commands that type into, start in or close their target: aimed at this session's own pane, tab or workspace
+# they would hijack or kill the run. Reads, waits and `pane split --current` are not here.
+SELF_TARGETED = {("pane", "run"), ("pane", "send-text"), ("pane", "send-keys"), ("pane", "input"),
+                 ("pane", "close"), ("agent", "prompt"), ("agent", "send-keys"), ("agent", "start"),
+                 ("tab", "close"), ("workspace", "close"), ("worktree", "remove")}
+OWN_ENV = (("pane", "HERDR_PANE_ID"), ("tab", "HERDR_TAB_ID"), ("workspace", "HERDR_WORKSPACE_ID"))
 
 
 def strip_heredocs(s):
@@ -72,14 +78,44 @@ def substitutions(tok):
         i = k
 
 
+def flag_value(tail, flag):
+    for k, a in enumerate(tail):
+        if a == flag and k + 1 < len(tail):
+            return tail[k + 1]
+        if a.startswith(flag + "="):
+            return a.split("=", 1)[1]
+    return ""
+
+
+def own_target(group, sub, tail):
+    """Name what this command aims at when it is the session's own pane, tab or workspace (or --current)."""
+    if (group, sub) not in SELF_TARGETED:
+        return ""
+    if "--current" in tail:
+        return "this session's own pane (--current)"
+    if (group, sub) == ("agent", "start"):
+        target = flag_value(tail, "--pane")
+    elif (group, sub) == ("worktree", "remove"):
+        target = flag_value(tail, "--workspace")
+    else:
+        target = tail[0] if tail and not tail[0].startswith("-") else ""
+    for what, env in OWN_ENV:
+        # the hook sees the command before the shell expands it, so `$HERDR_TAB_ID` is the usual spelling
+        if target and (target == os.environ.get(env) or target.startswith(("$" + env, "${" + env))):
+            return f"this session's own {what} {target}"
+    return ""
+
+
 def judge_herdr(args):
     i = 0
+    scoped = False  # --machine or --session: IDs belong to another server, the session's own IDs do not apply
     while i < len(args) and args[i].startswith("-"):
         a = args[i]
         if a in SAFE_FLAGS:
             return None
         if a == "--remote" or a.startswith("--remote="):
             return "herdr --remote attaches an interactive client and hangs the tool"
+        scoped = scoped or a.split("=")[0] in {"--machine", "--session"}
         i += 2 if a in HERDR_GLOBAL_WITH_ARG else 1
     rest = args[i:]
     if not rest:
@@ -100,6 +136,10 @@ def judge_herdr(args):
         return f"herdr session {sub} stops, deletes or attaches a persistent session"
     if (group, sub) == ("agent", "attach") or (group == "terminal" and sub in {"attach", "session"}):
         return f"herdr {group} {sub} opens an interactive client and hangs the tool"
+    own = "" if scoped else own_target(group, sub, tail)
+    if own:
+        return (f"herdr {group} {sub} aims at {own}; prompting, typing into or closing the pane "
+                "this session runs in would hijack or end the run")
     if (group, sub) == ("worktree", "remove") and "--force" in tail:
         return "worktree remove --force deletes uncommitted work; that decision is the user's"
     if (group, sub) == ("workspace", "close") and "--group" in tail:
@@ -220,8 +260,9 @@ def main():
         "hookEventName": "PreToolUse",
         "permissionDecision": "deny",
         "permissionDecisionReason": (
-            f"herdr-conductor guard: {reason}. If the user really wants this, they run it "
-            "themselves with `! <command>`, or add a guard_allow prefix in "
+            f"herdr-conductor guard: {reason}. This denial is final for the run: do not reach the same "
+            "effect through a script file, python -c, another shell or a pane. Tell the user; if they "
+            "really want it, they run it themselves with `! <command>`, or add a guard_allow prefix in "
             "~/.config/herdr-conductor/config.md."),
     }}))
 

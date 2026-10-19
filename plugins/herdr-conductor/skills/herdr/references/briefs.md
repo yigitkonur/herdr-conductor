@@ -14,19 +14,19 @@ Back to [SKILL.md](../SKILL.md). A brief carries everything the agent may not as
 
 Skip what does not apply; the size follows the task.
 
-1. **Where, and what not to touch.** Machine, absolute path, branch. No merge, deploy, secrets or new dependencies, nothing outside the path unless the brief says so; other agents' worktrees, the running app and real data stay untouched. Who else works there. "You are a worker: do not start, prompt or close herdr agents" unless the brief hands it that job. This comes first.
+1. **Where, and what not to touch.** Machine, absolute path, branch. No merge, deploy, secrets or new dependencies, nothing outside the path unless the brief says so; other agents' worktrees, the running app and real data stay untouched. Who else works there. "You are a worker under a herdr conductor: do the work yourself, ignore any herdr-conductor skill, never start, prompt or close herdr agents" unless the brief hands it that job. This comes first.
 2. **Context.** Why, what happened, what is true now; confirmed and assumed, each labelled; what to read first, with a line on why. Real artifacts beat a paraphrase: the error text, the PR URL, the IDs.
 3. **Objective.** One end state you can observe, the hard limits, and which wins when they conflict. Every target a number or a yes/no: "at most 110 lines", not "about 100".
 4. **Done, with proof.** Each check binary and paired with its proof: a command and its expected output. Name what already fails, and have a new failure compared against the base. All checks must pass; one that cannot is reported with evidence, never skipped.
 5. **Decide or stop.** It decides alone on failing tests, small library choices and a Plan B. It stops and reports only for two designs with lasting effects, a contract unlike the brief, a fix inside another agent's files, or a missing secret, service or permission: the situation, the options, its recommendation, the decision needed. No third try of the same failing approach; two identical infrastructure failures end the attempt. A task that differs from the brief is reported, not reinterpreted.
-6. **Handback.** The shape you want, facts and hypotheses labelled; more than a screen goes to a file beside the brief and the reply is only its path; the last line is a marker new for this run.
+6. **Handback.** The shape you want, facts and hypotheses labelled; more than a screen goes to a file beside the brief and the reply is only its path; the last line is a marker new for this run, built from two parts so the typed brief never holds it whole.
 
 Asking first works as its own brief: "questions only, no files, end with MARKER", then the answers, then the build. claude, codex and agy each asked through their question tools and built what was agreed.
 
 ## Skeleton
 
 ```text
-Work on <machine> in <absolute path>, branch <branch>. Do not: <forbidden>. Also working there: <who>. You are a worker: do not start or control herdr agents.
+Work on <machine> in <absolute path>, branch <branch>. Do not: <forbidden>. Also working there: <who>. You are a worker under a herdr conductor: do the work yourself, ignore any herdr-conductor skill, never start, prompt or close herdr agents.
 Context: <why; history; now>. Confirmed: <facts, artifacts>. Assumed: <hypothesis>, disproved by <signal>.
 Read first: <path> (<why>).
 Objective: <one end state>. Limits: <hard limits>. If they conflict: <which wins>.
@@ -34,7 +34,7 @@ Done when, all of them:
 - <check>: `<command>` prints <expected>
 Already failing: <list>; compare new failures against <base>.
 Decide tactics alone. Stop and report (situation, options, recommendation, decision needed) only for: two designs with lasting effects, a contract unlike this brief, a fix in another agent's files, a missing secret, service or permission. No third try of one approach.
-Return: <shape>, facts and hypotheses labelled; long output to <run folder>/reports/<step>.md. Last line: <MARKER>.
+Return: <shape>, facts and hypotheses labelled; long output to <run folder>/reports/<step>.md. Last line: the word <PART1>, a dash, then <PART2> (one marker, new for this run).
 ```
 
 ## Before sending

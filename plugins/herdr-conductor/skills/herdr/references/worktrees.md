@@ -35,7 +35,7 @@ worktree remove --workspace ID [--force] [--trust-repository]
 
 1. `worktree create --workspace <repo ws> --branch <branch> --base <base> --label <role-subject> --no-focus` (one source selector, an explicit new branch, a verified base).
 2. Start the agent in its root pane, read the screen, answer the trust question (a worktree the run created).
-3. Brief that ends "commit, push the branch, open a PR, reply with the PR URL and the marker".
+3. Brief that ends "commit, push the branch, open a draft PR (`gh pr create --draft`; ready only when the card says `pr: ready`), reply with the PR URL and the marker". Without `gh` or a GitHub remote the receipt is the pushed branch, or a local branch plus its commit SHA, and the review covers that commit range.
 4. One background wait per agent (references/waiting.md).
 5. Confirm on the machine: `gh pr view <url> --json state,headRefOid`, no dirty files, nothing unpushed (`git status --porcelain`, `git log @{u}..`).
 6. The review loop (references/scenarios.md), then `worktree remove` once it passes.
@@ -50,4 +50,4 @@ Run this way, two harnesses each delivered a PR in parallel from two worktrees o
 
 ## Cleanup order
 
-Stop waiters → confirm PRs and pushed branches → `worktree remove` each worktree (clean ones only) → close the tabs the run opened → close the run's main workspace last → snapshot to confirm nothing of the run is left and the user's focus is where it was. Branch deletion is a separate decision (`git branch -d` only, never `-D`).
+Stop waiters → confirm PRs and pushed branches → `worktree remove` each worktree (clean ones only) → close the tabs the run opened → close the run's main workspace last, unless it is the workspace this session runs in (that one stays open and the report says so) → snapshot to confirm nothing of the run is left and the user's focus is where it was. Branch deletion is a separate decision (`git branch -d` only, never `-D`).

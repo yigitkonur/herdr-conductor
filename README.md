@@ -74,7 +74,7 @@ for projects it grills you up front, a few rounds of real decisions with a recom
 - **dialogs, per harness.** trust prompts, question panels, permission screens, with the keys that actually worked for claude, codex and agy.
 - **quota hits.** agy and codex both hide them behind a normal-looking status. the plugin reads the text and knows what to do next: resume, switch harness, or wait for the reset.
 - **team runs.** agy and grok sit at `idle` while their subagents are still working. a marker-based wait catches the real end.
-- **worktrees for parallel writers.** one branch each, a pr or branch as the receipt, clean removal order, and it never forces a dirty one.
+- **worktrees for parallel writers.** one branch each, a draft pr or branch as the receipt, clean removal order, and it never forces a dirty one.
 - **the author never reviews itself.** reviews go to a different agent, ideally a different harness.
 - **a ledger that survives.** every step is tracked as submitted, consumed, completed, verified. after a compaction, a resume or a reboot it reads the ledger and re-checks by name instead of resending prompts blindly.
 - **saved machines.** `--machine` on every command, long briefs shipped through a drop folder, results pulled back and checked over ssh.
@@ -94,7 +94,7 @@ the always-ask list never moves: logins, credentials, payments, deleting things 
 
 ## the guard
 
-a small hook denies the herdr commands that can wreck your day: stopping or reloading the server, `herdr update`, machine and session management, interactive clients that hang the tool, `worktree remove --force`, `workspace close --group`, killing herdr, and approval-bypass flags for agents. it also looks at text typed into panes, so an agent can't be told to run them for you.
+a small hook denies the herdr commands that can wreck your day: stopping or reloading the server, `herdr update`, machine and session management, interactive clients that hang the tool, `worktree remove --force`, `workspace close --group`, killing herdr, approval-bypass flags for agents, and anything that prompts, types into or closes the pane your own session runs in. it also looks at text typed into panes, so an agent can't be told to run them for you. a denial is final for the run: it doesn't get to route around it.
 
 heredoc briefs that just *mention* those words pass fine. if you really want one of them, run it yourself with `!`, or allow that exact command in your config.
 
@@ -126,14 +126,14 @@ no paths are baked in. it adopts a project you already have, makes one in your p
 
 not vibes-tested. run live on herdr 0.9.5 with claude, codex and agy, locally and on a saved remote machine:
 
-- background-wait wake-up on an idle session
+- background-wait wake-up on an idle session, and a wait that survives `/compact`
 - the guard, 45 synthetic commands plus live denies. the doctor run even caught a false positive (`command -v herdr`) that got fixed
 - quick, task, delegate and project scenarios. the project run built two branches in two worktrees with two harnesses, had each reviewed by the other, merged and cleaned up
 - the worktree refusals (dirty checkout, group close)
 - a file brief delivered to a remote machine through a drop folder
-- the `claude plugin eval` suite: 4 of 4 cases pass, and the no-plugin baseline scores clearly lower where it should
+- the `claude plugin eval` suite, honestly: triggering (+1.0 over a no-plugin baseline) and the start-and-wait plan (+0.5) separate the plugin from the baseline, the "don't fire on ordinary subagent work" case holds, and the timeout-recovery case does not separate them yet (a plain model answers it the same way). the suite is noisy, details in `tests/CASES.md` (n11)
 
-being honest, not yet verified: pull requests through `gh`, a live `/compact`, the worker's long `running` path, an agy team with workers actually running (its quota was gone), and agy quota recovery. they're flagged in the docs so nothing pretends otherwise.
+being honest, not yet verified: pull requests through `gh`, the worker's long `running` path, an agy team with workers actually running (its quota was gone), and agy quota recovery. they're flagged in the docs so nothing pretends otherwise.
 
 every live case and what it showed is in [`tests/CASES.md`](tests/CASES.md).
 
@@ -144,6 +144,12 @@ python3 -I tools/lint.py
 ```
 
 checks every herdr command and flag in the docs against your installed cli, plus regression rules, links, a coverage map of the original skill, and a leak scan. only `--help` and `completion zsh` ever run.
+
+```text
+python3 -I tests/guard_check.py
+```
+
+feeds 58 synthetic commands to the guard hook and checks each one is denied or passed. nothing here runs herdr.
 
 ```text
 cd plugins/herdr-conductor && claude plugin eval . --trust-plugin --no-publish

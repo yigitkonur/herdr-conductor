@@ -4,25 +4,27 @@ Back to [SKILL.md](../SKILL.md). Quick work needs none of this. A task or projec
 
 ## Two layers of configuration
 
-- **User config** `~/.config/herdr-conductor/config.md`: YAML frontmatter plus free notes. Optional; every key has a default. Template: `${CLAUDE_PLUGIN_ROOT}/assets/templates/config.md` (`/herdr-conductor:setup` writes it).
-- **Project card** `CONDUCTOR.md` in the session directory: what this project is and how much the run may decide alone. Template: `${CLAUDE_PLUGIN_ROOT}/assets/templates/CONDUCTOR.md`.
+- **User config** `~/.config/herdr-conductor/config.md`: YAML frontmatter plus free notes. Optional; every key has a default. Template: `assets/templates/config.md` in the plugin root (named at the top of SKILL.md; `/herdr-conductor:setup` writes it).
+- **Project card** `CONDUCTOR.md` in the session directory: what this project is and how much the run may decide alone. Template: `assets/templates/CONDUCTOR.md` in the plugin root.
 
 | key | layer | default | meaning |
 | --- | --- | --- | --- |
 | `projects_root` | user | none | where new session directories are created (one folder per project) |
 | `default_autonomy` | user | `L2` | level used when a project card sets none (references/autonomy.md) |
-| `routing` | user, project | empty | role → harness and agent arguments, e.g. `review: codex -- -s read-only`; the project's wins |
+| `routing` | user, project | empty | role → harness and agent arguments, e.g. `review: codex`; the project's wins |
 | `machines` | user | empty | per saved machine: `remote_drop` (folder for briefs and reports), `rotate_command` (account rotation, if any) |
 | `guard_allow` | user only | empty | exact command prefixes the guard hook lets through, e.g. `herdr --session hc-test server stop` |
 | `notify` | user, project | `none` | `herdr`: toast on the user's Herdr when a decision is needed |
 | `research` | user, project | `subagents` | `herdr-only`: even fact finding goes to herdr agents |
 | `review_rounds` | user, project | `3` | review → fix rounds before the user is asked |
+| `pr` | project | `draft` | `draft`: runs open draft PRs; `ready`: ready for review (this requests reviews from real people on a shared repo) |
+| `max_parallel` | project | `3` | agents the run keeps working at once |
 
 ## Finding the session directory
 
 1. **Repository key**: the normalized remote URL (`git remote get-url origin`, scheme and `.git` removed, e.g. `github.com/owner/repo`); else the git common dir (`git rev-parse --path-format=absolute --git-common-dir`, shared by every worktree of the repo); else the directory itself when it is not a repo.
-2. **Adopt** an existing project, in this order: a `CONDUCTOR.md` in the working directory or a parent, walking up no further than the repository root (or `projects_root`, or the home directory), whose `repos:` lists the key; then the pointer file `~/.local/state/herdr-conductor/projects.tsv` (two tab-separated columns: repository key, session directory); then, under `projects_root`, a folder whose `CONDUCTOR.md` lists the key. A working directory already inside `projects_root/<project>/` is that project.
-3. **Create** one when nothing matched: `<projects_root>/<slug>/` when `projects_root` is set (slug from the repo name), else `<repo root>/.herdr-conductor/`, added to the repository's exclude file (`git rev-parse --git-path info/exclude`; in a linked worktree `.git` is a file) so it never dirties `git status` or rides along in `git add -A`. Write a CONDUCTOR.md (at least `repos:` with the key and `autonomy:`) for task runs too, since it is what the SessionStart hook and later sessions find, and a line into `projects.tsv` when the directory is outside the repository.
+2. **Adopt** an existing project, in this order: a `CONDUCTOR.md` in the working directory or a parent, walking up no further than the repository root (or `projects_root`, or the home directory), whose `repos:` lists the key (a `CONDUCTOR.md` without a `repos:` block is not a card, and the SessionStart hook ignores it too); then the pointer file `~/.local/state/herdr-conductor/projects.tsv` (two tab-separated columns: repository key, session directory); then, under `projects_root`, a folder whose `CONDUCTOR.md` lists the key. A working directory already inside `projects_root/<project>/` is that project.
+3. **Create** one when nothing matched: `<projects_root>/<slug>/` when `projects_root` is set (slug from the repo name), else `<main checkout>/.herdr-conductor/` (the parent of `git rev-parse --path-format=absolute --git-common-dir`; never `--show-toplevel` inside a linked worktree, because `worktree remove` would delete the folder with the ledger), added to the repository's exclude file (`git rev-parse --git-path info/exclude`; in a linked worktree `.git` is a file) so it never dirties `git status` or rides along in `git add -A`. Write a CONDUCTOR.md (at least `repos:` with the key and `autonomy:`) for task runs too, since it is what the SessionStart hook and later sessions find, and a line into `projects.tsv` when the directory is outside the repository.
 4. **Never create** at `~`, `/` or `projects_root` itself. Several candidates, or no repository and no card: ask with AskUserQuestion (candidates as options, recommendation first). Headless (no one to ask): use `~/.local/state/herdr-conductor/<key-hash>/` and say so in the report.
 5. A project whose repository exists only on a saved machine still has its session directory here; `repos:` records the machine and path, and briefs travel by the drop folder (references/briefs.md).
 
@@ -34,6 +36,7 @@ runs/<YYYYMMDD-HHMM>-<slug>/
   ledger.md                           # the run's memory
   briefs/<step>.md                    # long briefs (copied to the agent's machine when remote)
   reports/<step>.md                   # long handbacks
+  reviews/<id>.patch, <id>-verdict.md # a frozen candidate to review and the reviewer's verdict (scenarios.md)
   research/<topic>.md                 # research notes, conclusions first, sources as URLs
 ```
 
@@ -68,7 +71,7 @@ local fix-api w6A:p3 task b8x2 started 21:52 marker LGN1-q7 last completion_seq 
 ```
 
 - **Step states**: `submitted` (the CLI accepted the prompt), `consumed` (the screen shows the agent working on it), `completed` (the agent's turn ended with the marker), `verified` (the machine shows the result). A step short of `completed` gets `agent get`, a visible read and a marker or `completion_seq` check before anything is sent again; never resend after `timeout` or `agent_prompt_stalled`.
-- **Waiters** are keyed by agent name (pane IDs change when a pane moves). Each line: server, name, pane, background task id, started, marker, last `completion_seq`.
+- **Waiters** are keyed by agent name (pane IDs change when a pane moves). Each line: server, name, pane, background task id, started, marker, last handled `completion_seq`.
 - When the Task tools are available, a short task list may mirror the steps for the user's view; the ledger stays the truth.
 - `owner_session` lets the SessionStart hook tell this session's run from another session's after a resume or compaction. Leave it empty when the session id is unknown; the hook then treats the run as unowned.
 - `status: closed` and the end time go in when the final report is written.
@@ -77,4 +80,4 @@ local fix-api w6A:p3 task b8x2 started 21:52 marker LGN1-q7 last completion_seq 
 
 After a herdr server restart or a reboot, the workspaces and panes come back but the agents do not: their panes read `unknown` with no agent, `agent get` says `agent_not_found`, and every Waiter is dead. A reboot also empties `/tmp`, so keep session directories, briefs and reports elsewhere (the defaults do). Treat each ledger Target as gone until `agent get` or the screen proves otherwise, and restart agents from the ledger's briefs and the work already on the machine (git state, files) instead of resending prompts.
 
-The SessionStart hook prints the session directory and, after `resume` or `compact`, the open run's Waiters. Background waiters do not survive a resume: read the ledger, then for each Waiter `agent get <name>`, compare `completion_seq`, read the screen, and re-arm. A run that another session opened (the hook says "foreign") is adopted only after checking that no live session still drives it (its agents' states, the ledger's last write time), and the adoption is written into its ledger.
+The SessionStart hook prints the session directory and, after `resume` or `compact`, the open run's Waiters. Background waiters do not survive a resume, but they usually survive a compaction (references/waiting.md). After a resume read the ledger, then for each Waiter `agent get <name>`, compare `completion_seq`, read the screen, and re-arm. A run that another session opened (the hook says "foreign") is adopted only after checking that no live session still drives it (its agents' states, the ledger's last write time), and the adoption is written into its ledger.
