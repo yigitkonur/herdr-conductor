@@ -12,6 +12,7 @@ A Claude Code plugin marketplace with one plugin, [`herdr-conductor`](plugins/he
 | path | what |
 | --- | --- |
 | `plugins/herdr-conductor/` | the plugin (skills, agent, hooks, scripts, templates) |
+| `plugins/herdr-conductor/evals/` | `claude plugin eval` cases: skill trigger, negative trigger, the plan for starting and waiting, timeout recovery (the eval sandbox has no herdr socket, so they grade what the plugin steers, not live runs) |
 | `tools/lint.py` | static checks against the installed herdr CLI: drift, regression rules, Trace, coverage, leaks, hygiene |
 | `tests/CASES.md` | live cases: what was run against herdr, what came back, where each finding is stated, retest triggers |
 | `docs/COVERAGE.md` | where every item of the source skill went |

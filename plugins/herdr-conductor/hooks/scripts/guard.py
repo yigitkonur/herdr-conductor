@@ -131,6 +131,8 @@ def judge(cmd, depth=0):
         i += 1
     while i < len(cmd):
         exe = os.path.basename(cmd[i])
+        if exe in {"command", "builtin"} and any(re.match(r"^-[pPvV]*[vV][pPvV]*$", a) for a in cmd[i + 1:i + 3]):
+            return None  # `command -v herdr` looks a command up; it runs nothing
         if exe in WRAPPERS:
             i += 1
             while i < len(cmd) and cmd[i].startswith("-"):
