@@ -35,7 +35,7 @@ def frontmatter(path):
 
 
 def field(fm, key):
-    m = re.search(rf"^{key}:\s*(.+?)\s*$", fm, re.M)
+    m = re.search(rf"^{key}:[ \t]*(.*?)[ \t]*$", fm, re.M)
     return m.group(1).strip("'\"") if m else ""
 
 
