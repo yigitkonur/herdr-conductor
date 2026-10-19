@@ -33,7 +33,7 @@ Back to [SKILL.md](../SKILL.md). Read before treating `idle` or `done` as finish
 `herdr [--machine m] agent read <target> --source visible --lines 40`, then check, in this order:
 
 1. A footer naming keys ("Enter to select", "Enter to confirm · Esc to cancel", "enter Submit", codex `y`/`p`/`esc`) → a dialog, whatever the status (references/dialogs.md).
-2. agy: `quota reached`, `Resets in …`, `5H: 0%` in the status bar → quota (references/harness-agy.md).
+2. Quota text: agy `quota reached`, `Resets in …`, `5H: 0%` (references/harness-agy.md); codex `You've hit your usage limit` plus a "Switch to …" dialog that reads `idle` (references/harness-codex.md) → quota.
 3. Team rows still running (agy `● Agent(`, claude "Waiting for N dynamic workflow", claude background agents) → the leader settled, the team did not (references/waiting.md, team end).
 4. The marker you asked for, alone on the answer's own line (codex `• MARKER`, claude `⏺ MARKER`), after the last prompt. A marker quoted inside a sentence is not the marker: an agy that declined to print it explained why and quoted it.
 5. A question in prose → a finished turn; answer it with an ordinary prompt.

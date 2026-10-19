@@ -15,10 +15,14 @@ Back to [SKILL.md](../SKILL.md) · dialogs: [dialogs.md](dialogs.md).
 ## How its screen behaves
 
 - Starts in about 5 s; trivial prompts take 3–7 s. On 0.9.5 (codex 0.163) its trust dialog makes `agent start` return `agent_not_ready`, and after `enter` it read `done` with a new `completion_seq` before any prompt (references/dialogs.md). Answers are `• text` lines, so the marker line reads `• MARKER`; your prompt comes back rewrapped.
-- It redraws one screen (45 lines on one machine; `--lines 200` gave the same 45 from every source); the bottom six to eight lines are the input box and the status bar (context left, quota such as "weekly 8% left"; turns still ran while it showed "weekly 0% left", so read an actual error before calling it a quota hit). Read above them. An answer longer than a screen goes to a file and the reply is only its path.
+- It redraws one screen (45 lines on one machine; `--lines 200` gave the same 45 from every source); the bottom six to eight lines are the input box and the status bar (context left, quota such as "weekly 8% left"; turns still ran for a while at "weekly 0% left", so the bar is a warning and the error text is the hit). Read above them. An answer longer than a screen goes to a file and the reply is only its path.
 - Herdr reads its state from the window title (`osc_title_*` rules) and its trust dialog from the top 20 non-empty lines (`trust_directory`). The title is the thread name from the first prompt and goes stale.
 - A prompt sent mid-turn is folded into that turn ("Messages to be submitted after next tool call"); one completion answered both. Send the next task after the agent is ready, once.
 - Next-turn queue with `tab` (`pane send-text` the text, read the composer, `pane send-keys tab`) worked on one codex build: the follow-up ran as its own turn after the active one. It is capability-gated: verify it on the installed build in a scratch pane before relying on it; never press `enter` after `tab` as a fallback.
+
+## Usage limit
+
+A codex out of quota answers the prompt with `■ You've hit your usage limit. Visit … or try again at <date and time>.` and opens a model-switch dialog: "Approaching rate limits / Switch to <smaller model> for lower credit usage?" with `1. Switch`, `2. Keep current model`, `3. Keep current model (never show again)`, footer "enter select · esc back" *(0.9.5, codex 0.163)*. Herdr read it `idle` (`osc_title_idle`), and `agent prompt --wait` settled `done` with a new `completion_seq`: neither the status nor the exit code shows the quota hit, only the screen does. Do not pick option 1 or 3 on your own: switching the model changes cost and capability and is the routing's or the user's call (`esc` backs out). Recovery as for agy (references/harness-agy.md, steps 3 and 4): switch harness per the routing, or schedule a one-shot cron at the reset time.
 
 ## Question panel
 

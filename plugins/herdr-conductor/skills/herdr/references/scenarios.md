@@ -57,7 +57,7 @@ Judge a frozen candidate: a PR, a commit range, a diff.
 What is running, across servers, without taking anything over.
 
 - `herdr-snapshot` locally and with `--machine <label>` for each saved machine (`herdr machine list --json`); a machine that does not answer gets `herdr machine status <label> --json`.
-- Flags (the one definition; `/herdr-conductor:watch` uses it): `blocked` (read the dialog: question and keys); agy agents with `quota reached` or a reset timer on screen, whatever the status; `done` (unseen finished turns), and on a repeated sweep any `completion_seq` above the previous table's, which is in this conversation (the first sweep has no baseline); panes whose `agent` field is empty though a ledger names an agent there; agents on an open ledger with no live waiter.
+- Flags (the one definition; `/herdr-conductor:watch` uses it): `blocked` (read the dialog: question and keys); agy agents with `quota reached` or a reset timer, and codex agents with `usage limit` or a "Switch to" dialog on screen, whatever the status; `done` (unseen finished turns), and on a repeated sweep any `completion_seq` above the previous table's, which is in this conversation (the first sweep has no baseline); panes whose `agent` field is empty though a ledger names an agent there; agents on an open ledger with no live waiter.
 - Watch is read-only. Acting on an agent the run does not own needs the user's go; the agents of an open ledger are the run's own.
 - Periodic sweeps: `/herdr-conductor:watch --every <minutes>` sets a recurring `CronCreate` (session-only, fires when the session is idle, expires after 7 days); stop it with `CronDelete`.
 

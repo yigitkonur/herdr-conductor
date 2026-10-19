@@ -154,7 +154,7 @@ herdr [--machine m] agent start <name> --kind <kind> --pane <pane_id> --timeout 
 - **History lives in the agent's UI, not in Herdr.** `recent` holds only what the agent left in scrollback. Codex redraws one screen, and a fullscreen claude leaves only its visible rows; read that claude's transcript on its machine (`~/.claude/projects/<cwd with / as ->/<session>.jsonl`) or ask the agent for a file.
 - **The brief is the only fence you bring.** An agent may run without any approval dialog (bypass modes inherited from its own settings), so scope and limits travel inside the prompt (references/briefs.md).
 - **Stopping a turn is not stopping its work.** `esc` ended codex's turn while the command it had started ran on in the background. Stop work through the harness's own task control (codex `/stop`, agy `/tasks` then `k`), then confirm on the machine (`pgrep -f`) that the process is gone; the status will not tell.
-- **agy's quota hides behind any status.** After each agy wait, read its screen for `quota reached` before trusting `idle`, `done` or `blocked` (references/harness-agy.md).
+- **A quota hit hides behind any status.** After each wait, read the screen for quota text before trusting `idle`, `done` or `blocked`: agy `quota reached` (references/harness-agy.md), codex `You've hit your usage limit` followed by a model-switch dialog that Herdr reads `idle` (references/harness-codex.md).
 - **A surprise is a test case.** When a reply contradicts this skill, write command, reply, exit code and versions into the ledger, reproduce it later in a scratch workspace, once the user's work is done, and report it so the case table (tests/CASES.md in the plugin's repository) can take it.
 
 ## Ending a turn
