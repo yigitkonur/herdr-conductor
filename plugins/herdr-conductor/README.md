@@ -69,6 +69,10 @@ Project card `CONDUCTOR.md` in the session directory (template in `assets/templa
 
 Session directory resolution: adopt an existing project (a CONDUCTOR.md listing this repository, the pointer file `~/.local/state/herdr-conductor/projects.tsv`, or a match under `projects_root`); otherwise create one under `projects_root` or in the repository; ask when ambiguous.
 
+## Verified and not yet verified
+
+Verified live on herdr 0.9.5 (claude 2.1.302, codex 0.163, agy 1.4.2; local and one saved machine): background-wait wake-up, the guard (synthetic and live), the SessionStart line at startup and on resume, the quick, task, delegate and project scenarios, cross-harness review, worktree refusals, a file brief through a drop folder on a saved machine, and the `claude plugin eval` suite (4 of 4 cases). Not yet verified: pull requests and `gh`, a live `/compact`, the delegate agent's long `running` path, an agy team run with workers actually running, agy quota recovery, and whether a blocking question holds back wait notifications. `tests/CASES.md` in the repository lists each case and its status.
+
 ## herdr 0.9.4 and 0.9.5 changes reflected
 
 - agy and grok read `idle` at their prompt while background tasks or subagents still run: a settled wait is not the end of a team run.

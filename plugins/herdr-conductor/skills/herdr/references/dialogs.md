@@ -9,7 +9,7 @@ Every harness met a new folder with a trust dialog, `/tmp` subfolders and fresh 
 | harness | what `agent start` returned | on screen | keys that passed it |
 | --- | --- | --- | --- |
 | claude | `agent_not_ready`, exit 1, after 3–5 s; Herdr reads `blocked` (`live_blocked_form`) | trust dialog, default "No, exit" | `down`, `enter` |
-| codex | 0.9.5: `agent_not_ready`, exit 1, `blocked` (`trust_directory`). *(seen 0.9.3: `idle`, exit 0, `interactive_ready: true`; the next `agent get` read `blocked`)* | "Trust this folder?" with "1. Trust and continue / 2. Quit", footer "enter continue · esc quit"; on some machines "Cannot use the background server" first (1 run without daemon / 2 cancel) | `enter`; with the daemon dialog first, `1` then `enter` |
+| codex | 0.9.5: `agent_not_ready`, exit 1, `blocked` (`trust_directory`). *(seen 0.9.3: `idle`, exit 0, `interactive_ready: true`; the next `agent get` read `blocked`)* | "Trust this folder?" with "1. Trust and continue" and a second option ("2. Quit", or "2. Back to Agent Command Center" on another build), footer "enter continue · esc quit"; on some machines "Cannot use the background server" first (1 run without daemon / 2 cancel) | `enter`; with the daemon dialog first, `1` then `enter` |
 | agy | `idle`, exit 0, after ~4 s, `interactive_ready: true`, sometimes before the dialog appeared (about 3 s later) | "Yes, I trust this folder" as default | `enter` |
 
 - After its trust dialog was answered, codex read `done` with a new `completion_seq` before any prompt (0.9.5): record that value as the baseline.

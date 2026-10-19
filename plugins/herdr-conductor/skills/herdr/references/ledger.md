@@ -73,6 +73,8 @@ local fix-api w6A:p3 task b8x2 started 21:52 marker LGN1-q7 last completion_seq 
 - `owner_session` lets the SessionStart hook tell this session's run from another session's after a resume or compaction. Leave it empty when the session id is unknown; the hook then treats the run as unowned.
 - `status: closed` and the end time go in when the final report is written.
 
-## Recovery after compaction or resume
+## Recovery after compaction, resume or a restart
+
+After a herdr server restart or a reboot, the workspaces and panes come back but the agents do not: their panes read `unknown` with no agent, `agent get` says `agent_not_found`, and every Waiter is dead. A reboot also empties `/tmp`, so keep session directories, briefs and reports elsewhere (the defaults do). Treat each ledger Target as gone until `agent get` or the screen proves otherwise, and restart agents from the ledger's briefs and the work already on the machine (git state, files) instead of resending prompts.
 
 The SessionStart hook prints the session directory and, after `resume` or `compact`, the open run's Waiters. Background waiters do not survive a resume: read the ledger, then for each Waiter `agent get <name>`, compare `completion_seq`, read the screen, and re-arm. A run that another session opened (the hook says "foreign") is adopted only after checking that no live session still drives it (its agents' states, the ledger's last write time), and the adoption is written into its ledger.

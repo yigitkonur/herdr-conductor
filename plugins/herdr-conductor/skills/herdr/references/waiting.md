@@ -59,7 +59,7 @@ Allowed when every working ledger agent has a live waiter task, or a `/loop` or 
 
 ## Questions while agents work
 
-AskUserQuestion blocks the session: no notification is handled while a question is open, so every other agent finishes or blocks unattended. Ask only when no ledger agent is working or nothing independent is left. Otherwise write the question under "Waiting on the user" in the ledger, keep the other agents moving, and ask the collected questions together when the session would otherwise stop.
+AskUserQuestion blocks the session while it is open, and notifications from background waits are very likely held until it is answered (not yet observed: UNVERIFIED), so every other agent would finish or block unattended. Ask only when no ledger agent is working or nothing independent is left. Otherwise write the question under "Waiting on the user" in the ledger, keep the other agents moving, and ask the collected questions together when the session would otherwise stop.
 
 ## Shell traps (zsh)
 

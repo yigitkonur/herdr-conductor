@@ -41,6 +41,7 @@ Machines: **local** is a macOS workstation, **remote** a Linux server saved as a
 | N7 | the `herdr-worker` subagent returns its fixed shape | PASS: a fresh session used `herdr-conductor:herdr-worker` twice. Short path: codex committed `w.txt`, the worker ran the done-checks itself, closed its workspace and returned the fixed shape; the main session spot-checked. `needs_decision` path: the worker answered claude's trust dialog (vouched folder), returned the Colour dialog with its keys and left the agent open; the main session pressed `enter` (Red), `agent wait` → `done`, marker `⏺ COLOR-Red-r7q`. UNVERIFIED: the long `running` path |
 | N8 | a project through `/herdr-conductor:conduct` | PASS (local, headless `claude -p`, ~8 min): `/herdr-conductor:conduct` with the upfront answers supplied wrote a git-excluded `.herdr-conductor/` with CONDUCTOR.md and a run ledger (`owner_session`, Targets, step states, Waiters; closed at the end), opened its own workspace, created two worktrees with `--no-focus`, ran codex (feat-a) and claude (feat-b) in them with background waits and markers, had each branch reviewed read-only by the other harness (`reviews/<branch>.md`, first line PASS), merged both locally, removed both clean worktrees, closed its tabs and workspace last, and removed the codex trust entry it had added; the user's focus did not move. Checked on the machine: `git log --graph`, `git worktree list`, `git status`. Refusals tested separately: `dirty_worktree_requires_force` on an untracked file, `workspace_group_close_required` on the main workspace, then clean removal and close-main-last. UNVERIFIED: pull requests and `gh` (no remote), the watch table during a run |
 | N9 | a remote round with a file brief through the drop folder | PASS (remote, herdr 0.9.5, codex): discovery with `--machine` (snapshot 28 workspaces, `status server --json`, `machine status`, bare `status` exit 2); a file brief copied with scp to a drop folder and confirmed with `ssh ls`; trust dialog → `agent_not_ready`, `enter`; one-line prompt pointing at the file → `done` 138; the commit, the file and the report checked over ssh; the report pulled back; marker `BRIEFDONE-w4n` alone on its line; workspace closed, scratch and the added trust table removed |
+| N11 | the eval suite scores the plugin above a no-plugin baseline | PASS (`claude plugin eval`, a small model, 2 runs per arm, $0.74, 130 s): 4 of 4 cases at 1.0; baseline 0 / 0.3 / 0.75 / 1.0 on trigger / start-wait / timeout-recovery / negative, delta +1.0 / +0.7 / +0.25 / 0; the skill-fired grader is plugin-only |
 | N10 | install from the marketplace and run from the cache copy | pending |
 
 ## Trace
@@ -93,6 +94,7 @@ Where each finding is stated (paths relative to `plugins/herdr-conductor/`). Rew
 | N8 | skills/herdr/references/scenarios.md | The last page is autonomy |
 | N9 | skills/herdr/references/briefs.md | Copy it to that machine's drop folder |
 | N10 | skills/herdr/SKILL.md | Plugin root: `${CLAUDE_PLUGIN_ROOT}` |
+| N11 | evals/plan-start-wait/prompt.md | List the exact herdr commands you would run |
 
 ## Retest triggers
 
