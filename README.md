@@ -10,27 +10,99 @@ driving agents through a terminal multiplexer is weirder than it looks. `idle` d
 
 this plugin is the scar tissue from running all of that for real, written down so claude stops rediscovering it the hard way every session.
 
-## get it
+## install
+
+one line in your terminal. no menus, no prompts:
+
+```bash
+claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor
+```
+
+that adds this repo as a marketplace (it is one, with a single plugin in it) and installs the plugin at user scope, so it works in every project on the machine. about 8 seconds. then start claude (or run `/reload-plugins` in a session that's already open) and run this once:
+
+```text
+/herdr-conductor:setup
+```
+
+it's a doctor: checks herdr, the server, your integrations, saved machines and which harnesses are installed. read-only, it won't touch anything without asking.
+
+check it worked:
+
+```bash
+claude plugin list
+```
+
+you want `herdr-conductor@herdr-conductor`, `Scope: user`, `Status: ✔ enabled`. inside claude, ask "which herdr skills and agents do you have?". the answer is `herdr-conductor:herdr` and `herdr-conductor:herdr-worker`. inside a herdr pane there's also a one-line `herdr-conductor:` context at session start.
+
+you need:
+
+- herdr 0.9.5 or newer, on every machine you want to drive
+- claude code 2.1.292 or newer (that's where `--marketplace` landed; tested on 2.1.302)
+- `python3` (the hooks and the snapshot helper use it)
+- the harness clis you actually want to run (claude, codex, agy...), installed and logged in
+
+works from inside a herdr pane or from a plain terminal outside herdr. it figures out which one it's in.
+
+### why a marketplace
+
+claude code installs plugins by name from a marketplace, which is just a git repo with a `.claude-plugin/marketplace.json`. this repo is one, so there's nothing else to register or submit. the one-liner above is "add the marketplace, then install from it" in a single command. the other routes don't stick: `claude --plugin-dir <path>` loads a checkout for one session only.
+
+### other ways in
+
+the same thing in two steps:
+
+```bash
+claude plugin marketplace add yigitkonur/herdr-conductor
+claude plugin install herdr-conductor@herdr-conductor
+```
+
+from inside a claude session, as slash commands:
 
 ```text
 /plugin marketplace add yigitkonur/herdr-conductor
 /plugin install herdr-conductor@herdr-conductor
 ```
 
-the second command opens a small menu asking where to install. pick the first one, "install for you (user scope)", and hit enter. then run `/herdr-conductor:setup` once. it's a doctor: checks herdr, the server, your integrations, saved machines and which harnesses are installed. read-only, it won't touch anything without asking.
+the second one opens a small menu asking where to install. the first row, "install for you (user scope)", is already highlighted. hit enter.
 
-you need:
+for a whole team, commit it to the repo (project scope):
 
-- herdr 0.9.5 or newer, on every machine you want to drive
-- claude code with plugin support (tested on 2.1.302)
-- `python3` (the hooks and the snapshot helper use it)
-- the harness clis you actually want to run (claude, codex, agy...), installed and logged in
+```bash
+cd your-repo
+claude plugin marketplace add yigitkonur/herdr-conductor --scope project
+claude plugin install herdr-conductor@herdr-conductor --scope project
+git add .claude/settings.json && git commit -m "add herdr-conductor"
+```
 
-works from inside a herdr pane or from a plain terminal outside herdr. it figures out which one it's in.
+that writes these two entries into `.claude/settings.json` (this part ran clean from an empty config). the same json pasted into `~/.claude/settings.json` works as a declarative user install, but nothing downloads until claude starts a session. per the docs, teammates get the marketplace after they trust the folder, and if claude says the plugin is enabled but not installed, they run the `install` line above with `--scope project`. i haven't tried the teammate side on a second person's machine.
 
-## installing on a saved machine
+```json
+{
+  "extraKnownMarketplaces": {
+    "herdr-conductor": { "source": { "source": "github", "repo": "yigitkonur/herdr-conductor" } }
+  },
+  "enabledPlugins": { "herdr-conductor@herdr-conductor": true }
+}
+```
 
-plugins live in each machine's own claude config, so a remote box needs its own install. you can do it without leaving your session, straight through herdr:
+just kicking the tires, one session only, nothing installed:
+
+```bash
+git clone https://github.com/yigitkonur/herdr-conductor
+claude --plugin-dir ./herdr-conductor/plugins/herdr-conductor
+```
+
+### on a saved machine
+
+plugins live in each machine's own claude config, so a remote box needs its own install. over ssh it's the same one line:
+
+```bash
+ssh <target> 'claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor'
+```
+
+the box needs herdr 0.9.5, `python3` and a route to github. a claude that was already running there has to restart to load the hooks. tested on a linux box: skill, worker agent, session-start line, doctor and guard all came up.
+
+no ssh, only herdr? drive claude on that machine through herdr, like tmux:
 
 ```text
 herdr --machine <label> agent start inst --kind claude --pane <pane> --timeout 30000
@@ -39,7 +111,41 @@ herdr --machine <label> agent prompt inst "/plugin install herdr-conductor@herdr
 herdr --machine <label> agent send-keys inst enter
 ```
 
-read the screen after each one. the first start stops at claude's folder-trust dialog (`down enter` if the folder is yours), and the install menu needs that last `enter`. then restart claude there so the hooks load. the box needs herdr 0.9.5, `python3` and a route to github. this exact flow was run on a linux box and the doctor, the skill, the worker agent and the guard all came up.
+read the screen after each one. the first start stops at claude's folder-trust dialog (`down enter` if the folder is yours), and the install menu needs that last `enter`.
+
+### update, pin, remove
+
+```bash
+claude plugin marketplace update herdr-conductor
+claude plugin update herdr-conductor@herdr-conductor
+```
+
+restart claude to apply. marketplaces from third parties don't auto-update by default; add `"autoUpdate": true` to the marketplace entry in your settings if you want that.
+
+to pin the marketplace to a branch or tag, put it after a `#`:
+
+```bash
+claude plugin marketplace add 'yigitkonur/herdr-conductor#main'
+```
+
+(tried with `#main`. there are no release tags yet.)
+
+to remove it:
+
+```bash
+claude plugin uninstall herdr-conductor
+claude plugin marketplace remove herdr-conductor
+```
+
+on a remote box, uninstall then the one-liner again left the settings file byte for byte as it was.
+
+### if it doesn't take
+
+- the install prints "ssh not configured, cloning via https". that's fine, the repo is public.
+- you use `/plugin` inside a session and the clone fails: in-session installs don't fall back to https. start claude with `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, or use the terminal one-liner (docs).
+- installed, but claude doesn't know the skill: restart it, or `/reload-plugins`.
+- `claude plugin list` shows it but the doctor warns about `python3`: the hooks need it on the machine's path.
+- `claude plugin validate .` in a checkout of this repo checks the marketplace and the plugin manifests.
 
 ## what you can say
 
@@ -131,6 +237,7 @@ not vibes-tested. run live on herdr 0.9.5 with claude, codex and agy, locally an
 - quick, task, delegate and project scenarios. the project run built two branches in two worktrees with two harnesses, had each reviewed by the other, merged and cleaned up
 - the worktree refusals (dirty checkout, group close)
 - a file brief delivered to a remote machine through a drop folder
+- the install itself: the one-liner from an empty claude config, project scope, a pinned ref, and a clean uninstall and reinstall over ssh on a remote box, with a fresh claude there seeing the skill, the worker agent and the session-start line
 - the `claude plugin eval` suite, honestly: triggering (+1.0 over a no-plugin baseline) and the start-and-wait plan (+0.5) separate the plugin from the baseline, the "don't fire on ordinary subagent work" case holds, and the timeout-recovery case does not separate them yet (a plain model answers it the same way). the suite is noisy, details in `tests/CASES.md` (n11)
 
 being honest, not yet verified: pull requests through `gh`, the worker's long `running` path, an agy team with workers actually running (its quota was gone), and agy quota recovery. they're flagged in the docs so nothing pretends otherwise.

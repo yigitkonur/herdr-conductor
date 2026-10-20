@@ -7,15 +7,16 @@ The knowledge in it comes from many live runs against herdr: how agent states re
 ## Requirements
 
 - herdr 0.9.5 or newer on every machine it drives (`herdr --version`, `herdr status server --json`).
-- Claude Code with plugin support (tested with 2.1.302). `python3` for the hooks and `herdr-snapshot`.
+- Claude Code 2.1.292 or newer (the `--marketplace` install flag; tested with 2.1.302 and 2.1.303). `python3` for the hooks and `herdr-snapshot`.
 - The harness CLIs you want to run (claude, codex, agy, …) installed and logged in on their machines.
 
 ## Install
 
-```text
-/plugin marketplace add yigitkonur/herdr-conductor
-/plugin install herdr-conductor@herdr-conductor
+```bash
+claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor
 ```
+
+One command, no prompts: it adds this repository as a marketplace and installs the plugin at user scope. Check with `claude plugin list`, then restart Claude Code or run `/reload-plugins`. The same thing inside a session is `/plugin marketplace add yigitkonur/herdr-conductor` then `/plugin install herdr-conductor@herdr-conductor`, which opens a scope menu (the first row, user scope, is highlighted: press enter). Project scope, remote machines, updating, pinning and removal are in the repository's top-level README.
 
 For development, load a checkout directly: `claude --plugin-dir ./plugins/herdr-conductor`.
 
