@@ -36,8 +36,8 @@ herdr [--machine m] agent wait <name> --timeout 3600000 2>&1; echo "HC_WAIT_EXIT
 
 agy and grok read `idle` at their prompt while their subagents still run, and an agy `/teamwork-preview` run settled `idle` and `done` several times before its team finished *(seen 0.9.3; by design since 0.9.4)*. A default wait therefore returns early, and waiting again returns at once. Do this instead:
 
-1. Give the brief a marker the agent prints only after every worker has finished and the result is checked, built from two parts so the typed prompt never contains it whole: "When everything is finished and checked, print on its own line the word `TEAMEND` followed by `-` and `k3x9`" → the screen will show `TEAMEND-k3x9` only when the agent writes it.
-2. Wait for that line in the background, server-side, anchored so it matches only a line that holds the marker alone (an agy that declined to print it quoted it in a sentence, and an unanchored pattern matched that): `herdr [--machine m] pane wait-output <pane_id> --regex '^[^A-Za-z0-9]*TEAMEND-k3x9\s*$' --timeout 3600000 2>&1; echo "HC_WAIT_EXIT=$?"`. Use a new suffix for every run: `wait-output` searches what is already on screen, so a reused marker matches at once.
+1. Give the brief a marker the agent prints only after every worker has finished and the result is checked, built from two parts so the typed prompt never contains it whole: "When everything is finished and checked, print on its own line `TEAMEND`, a dash and `k3x9` written together with no spaces" → the screen will show `TEAMEND-k3x9` only when the agent writes it.
+2. Wait for that line in the background, server-side, anchored so it matches only a line that holds the marker alone (an agy that declined to print it quoted it in a sentence, and an unanchored pattern matched that): `herdr [--machine m] pane wait-output <pane_id> --regex '^[^A-Za-z0-9]*TEAMEND *- *k3x9\s*$' --timeout 3600000 2>&1; echo "HC_WAIT_EXIT=$?"`. Use a new suffix for every run: `wait-output` searches what is already on screen, so a reused marker matches at once.
 3. When it matches, read the screen: no `● Agent(` row (or the harness's equivalent) may be left, and the result must check out on the machine. A team row still running means the marker came early: wait on the agent with `--until working`, then on the default set, and read again.
 
 Local rule sets may already report a running team as `working` (some carry `subagent_working` or `background_agents_working` rules); `agent explain` on that machine says which. The marker wait works either way.
@@ -61,7 +61,7 @@ Allowed when every working ledger agent has a live waiter task, or a `/loop` or 
 
 ## Questions while agents work
 
-AskUserQuestion blocks the session while it is open, and notifications from background waits are very likely held until it is answered (not yet observed: UNVERIFIED), so every other agent would finish or block unattended. Ask only when no ledger agent is working or nothing independent is left. Otherwise write the question under "Waiting on the user" in the ledger, keep the other agents moving, and ask the collected questions together when the session would otherwise stop.
+AskUserQuestion blocks the session while it is open, and notifications from background waits are held until it is answered: a background task that ended 35 s into an open question reached the session only after the answer (claude 2.1.302). Meanwhile every other agent finishes or blocks unattended. Ask only when no ledger agent is working or nothing independent is left. Otherwise write the question under "Waiting on the user" in the ledger, keep the other agents moving, and ask the collected questions together when the session would otherwise stop.
 
 ## Shell traps (when the shell is zsh)
 

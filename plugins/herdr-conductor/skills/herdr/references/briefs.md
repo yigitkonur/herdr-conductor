@@ -34,7 +34,7 @@ Done when, all of them:
 - <check>: `<command>` prints <expected>
 Already failing: <list>; compare new failures against <base>.
 Decide tactics alone. Stop and report (situation, options, recommendation, decision needed) only for: two designs with lasting effects, a contract unlike this brief, a fix in another agent's files, a missing secret, service or permission. No third try of one approach.
-Return: <shape>, facts and hypotheses labelled; long output to <run folder>/reports/<step>.md. Last line: the word <PART1>, a dash, then <PART2> (one marker, new for this run).
+Return: <shape>, facts and hypotheses labelled; long output to <run folder>/reports/<step>.md. Last line: <PART1>, a dash and <PART2> written together with no spaces (one marker, new for this run).
 ```
 
 ## Before sending

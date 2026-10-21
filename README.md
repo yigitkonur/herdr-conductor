@@ -37,7 +37,7 @@ you want `herdr-conductor@herdr-conductor`, `Scope: user`, `Status: ✔ enabled`
 you need:
 
 - herdr 0.9.5 or newer, on every machine you want to drive
-- claude code 2.1.292 or newer (that's where `--marketplace` landed; tested on 2.1.302)
+- claude code 2.1.292 or newer (that's where `--marketplace` landed; tested on 2.1.302 through 2.1.306)
 - `python3` (the hooks and the snapshot helper use it)
 - the harness clis you actually want to run (claude, codex, agy...), installed and logged in
 
@@ -74,7 +74,9 @@ claude plugin install herdr-conductor@herdr-conductor --scope project
 git add .claude/settings.json && git commit -m "add herdr-conductor"
 ```
 
-that writes these two entries into `.claude/settings.json` (this part ran clean from an empty config). the same json pasted into `~/.claude/settings.json` works as a declarative user install, but nothing downloads until claude starts a session. per the docs, teammates get the marketplace after they trust the folder, and if claude says the plugin is enabled but not installed, they run the `install` line above with `--scope project`. i haven't tried the teammate side on a second person's machine.
+that writes these two entries into `.claude/settings.json`. teammates then just clone, start claude in the repo and trust the folder. that's the whole install: claude fetches the marketplace in the background, and the skill, the worker agent and the guard are live in that very first session (the session-start line shows up from their next session). heads up, `claude plugin list` won't show it for them, because the project enabled it and they never installed it. if they want it listed, they run the `install` line above with `--scope project`. tested on a second box with every trace of the plugin wiped first.
+
+the same json pasted into `~/.claude/settings.json` works as a declarative user install, but nothing downloads until claude starts a session.
 
 ```json
 {
@@ -128,7 +130,14 @@ to pin the marketplace to a branch or tag, put it after a `#`:
 claude plugin marketplace add 'yigitkonur/herdr-conductor#main'
 ```
 
-(tried with `#main`. there are no release tags yet.)
+releases are tagged `herdr-conductor--v<version>`, so pinning to one looks like this:
+
+```bash
+claude plugin marketplace add 'yigitkonur/herdr-conductor#herdr-conductor--v0.1.3'
+claude plugin install herdr-conductor@herdr-conductor
+```
+
+the list is on the [releases page](https://github.com/yigitkonur/herdr-conductor/releases).
 
 to remove it:
 
@@ -144,6 +153,7 @@ on a remote box, uninstall then the one-liner again left the settings file byte 
 - the install prints "ssh not configured, cloning via https". that's fine, the repo is public.
 - you use `/plugin` inside a session and the clone fails: in-session installs don't fall back to https. start claude with `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, or use the terminal one-liner (docs).
 - installed, but claude doesn't know the skill: restart it, or `/reload-plugins`.
+- the marketplace was already known from some project's settings: the one-liner then installs the plugin but doesn't write the marketplace into your user settings. run `claude plugin marketplace add yigitkonur/herdr-conductor` once and it says "declared in user settings".
 - `claude plugin list` shows it but the doctor warns about `python3`: the hooks need it on the machine's path.
 - `claude plugin validate .` in a checkout of this repo checks the marketplace and the plugin manifests.
 
@@ -233,14 +243,17 @@ no paths are baked in. it adopts a project you already have, makes one in your p
 not vibes-tested. run live on herdr 0.9.5 with claude, codex and agy, locally and on a saved remote machine:
 
 - background-wait wake-up on an idle session, and a wait that survives `/compact`
-- the guard, 45 synthetic commands plus live denies. the doctor run even caught a false positive (`command -v herdr`) that got fixed
+- the guard, 58 synthetic commands plus live denies, including a session trying to close its own tab. the doctor run even caught a false positive (`command -v herdr`) that got fixed
 - quick, task, delegate and project scenarios. the project run built two branches in two worktrees with two harnesses, had each reviewed by the other, merged and cleaned up
 - the worktree refusals (dirty checkout, group close)
 - a file brief delivered to a remote machine through a drop folder
+- a `conduct` run that opened a draft pr through `gh` and had a second claude review it with a pass comment, then removed its worktree cleanly
+- the worker's long path: out of time budget, it hands back `running` with handles, and the conductor's own background wait picks the agent up when it finishes
+- an open question dialog holds background notifications until it's answered (they arrive late, not lost)
 - the install itself: the one-liner from an empty claude config, project scope, a pinned ref, and a clean uninstall and reinstall over ssh on a remote box, with a fresh claude there seeing the skill, the worker agent and the session-start line
 - the `claude plugin eval` suite, honestly: triggering (+1.0 over a no-plugin baseline) and the start-and-wait plan (+0.5) separate the plugin from the baseline, the "don't fire on ordinary subagent work" case holds, and the timeout-recovery case does not separate them yet (a plain model answers it the same way). the suite is noisy, details in `tests/CASES.md` (n11)
 
-being honest, not yet verified: pull requests through `gh`, the worker's long `running` path, an agy team with workers actually running (its quota was gone), and agy quota recovery. they're flagged in the docs so nothing pretends otherwise.
+being honest, not yet verified: an agy team with workers actually running and agy quota recovery (the local agy is an account-rotating wrapper, and launching one would have rotated the account under a live session), plus three rules that are written down but were never provoked live: hands off when you're focused on an agent's pane, two timeouts on an unchanged screen count as no progress, and one re-arm after a dropped ssh. they're flagged in the docs so nothing pretends otherwise.
 
 every live case and what it showed is in [`tests/CASES.md`](tests/CASES.md).
 
