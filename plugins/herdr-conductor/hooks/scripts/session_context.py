@@ -139,8 +139,12 @@ def main():
     except Exception:
         parts.append(f"herdr {ver} (server not reachable)")
     if inside:
-        parts.append(f"this session runs inside herdr pane {os.environ.get('HERDR_PANE_ID', '?')} "
-                     "(never prompt, key or close it)")
+        if CODEX:  # Codex hooks inherit HERDR_* from the process that started Codex: the pane ID there can be another session's
+            parts.append("this session runs inside a herdr pane; find it with `herdr pane current --current` "
+                         "(never prompt, key or close it)")
+        else:
+            parts.append(f"this session runs inside herdr pane {os.environ.get('HERDR_PANE_ID', '?')} "
+                         "(never prompt, key or close it)")
     else:
         parts.append("this session runs outside herdr (no caller pane; explicit IDs, never --current)")
     if sid:

@@ -29,6 +29,7 @@ SEP = {";", "&&", "||", "|", "&", "\n", "(", ")", "|&", ";;"}
 SELF_TARGETED = {("pane", "run"), ("pane", "send-text"), ("pane", "send-keys"), ("pane", "input"),
                  ("pane", "close"), ("agent", "prompt"), ("agent", "send-keys"), ("agent", "start"),
                  ("tab", "close"), ("workspace", "close"), ("worktree", "remove")}
+CODEX = "--host=codex" in sys.argv  # Codex hooks inherit HERDR_* from the process that started Codex, not from this pane
 OWN_ENV = (("pane", "HERDR_PANE_ID"), ("tab", "HERDR_TAB_ID"), ("workspace", "HERDR_WORKSPACE_ID"))
 
 
@@ -101,7 +102,7 @@ def own_target(group, sub, tail):
         target = tail[0] if tail and not tail[0].startswith("-") else ""
     for what, env in OWN_ENV:
         # the hook sees the command before the shell expands it, so `$HERDR_TAB_ID` is the usual spelling
-        if target and (target == os.environ.get(env) or target.startswith(("$" + env, "${" + env))):
+        if target and ((not CODEX and target == os.environ.get(env)) or target.startswith(("$" + env, "${" + env))):
             return f"this session's own {what} {target}"
     return ""
 

@@ -11,3 +11,4 @@ This plugin was written for Claude Code. Codex loads the same skills and hooks; 
 - **Skills** are invoked as `$herdr`, `$conduct`, `$watch`, `$setup`. `$ARGUMENTS` is not substituted: the goal, servers and flags are what the user wrote after the skill name.
 - **Shell tool.** Codex's `PreToolUse` guard sees only shell commands. The hands-off rules for the session's own pane, tab and workspace still apply when the guard does not see a command.
 - **Worker agents you start** are ordinary herdr agents; their harness rules (`harness-*.md`) are unchanged.
+- **Your own pane.** Hooks in Codex inherit `HERDR_*` from the process that started Codex, which can be another session's pane (seen: a hook named a pane that no longer existed). Take the pane from `herdr pane current --current`, never from a hook line or a remembered ID.
