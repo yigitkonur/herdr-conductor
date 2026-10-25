@@ -1,6 +1,6 @@
 {
   "name": "herdr-conductor",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Conduct coding agents in herdr: discover, start, prompt, wait, answer dialogs, verify on the machine, review across harnesses, worktrees and saved machines.",
   "author": {
     "name": "Yigit Konur",

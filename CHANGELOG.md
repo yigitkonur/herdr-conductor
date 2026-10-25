@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 - 2026-10-25
+
+- fix: Codex hooks no longer trust the inherited HERDR_PANE_ID; session line points at pane current (95093d2)
+
 ## 0.2.0 - 2026-10-25
 
 - feat: Codex support (marketplace, manifest, hooks, host reference); Claude plugin ships disabled by default (54aa8b8)
