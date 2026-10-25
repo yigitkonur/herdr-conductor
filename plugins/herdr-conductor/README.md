@@ -7,24 +7,21 @@ The knowledge in it comes from many live runs against herdr: how agent states re
 ## Requirements
 
 - herdr 0.9.5 or newer on every machine it drives (`herdr --version`, `herdr status server --json`).
-- Claude Code 2.1.292 or newer (the `--marketplace` install flag; tested with 2.1.302 and 2.1.303). `python3` for the hooks and `herdr-snapshot`.
+- Claude Code 2.1.292 or newer (tested with 2.1.302 and 2.1.303). `python3` for the hooks and `herdr-snapshot`.
 - The harness CLIs you want to run (claude, codex, agy, …) installed and logged in on their machines.
 
 ## Install
 
-```bash
-claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor
-```
+Install it once, globally, and off; switch it on per project (it costs about 550 tokens per session while enabled). The commands for Claude Code and Codex, on this machine and the others, updating, pinning and removal are in the repository's top-level README, under "install". Then run `/herdr-conductor:setup` once in a project where it is on: it checks herdr, the server, integrations, saved machines and harnesses (read-only), and writes the optional config.
 
-One command, no prompts: it adds this repository as a marketplace and installs the plugin at user scope. Check with `claude plugin list`, then restart Claude Code or run `/reload-plugins`. The same thing inside a session is `/plugin marketplace add yigitkonur/herdr-conductor` then `/plugin install herdr-conductor@herdr-conductor`, which opens a scope menu (the first row, user scope, is highlighted: press enter). Project scope, remote machines, updating, pinning and removal are in the repository's top-level README.
+What the install commands were tested to do (the commands themselves are in the top-level README):
 
-For a team, commit the two entries that `claude plugin marketplace add yigitkonur/herdr-conductor --scope project` and `claude plugin install herdr-conductor@herdr-conductor --scope project` write to `.claude/settings.json`. A teammate who clones the repo and trusts the folder needs nothing else: the skill, the worker agent and the guard are live in that first session, and the session-start line appears from the next one. `claude plugin list` does not list a plugin the project enabled. If the marketplace was already known from a project, the one-liner installs the plugin without declaring the marketplace in user settings; `claude plugin marketplace add yigitkonur/herdr-conductor` declares it.
-
-To keep it installed everywhere but on only where you want it (it costs about 550 tokens per session while enabled): install it as above, run `claude plugin disable herdr-conductor@herdr-conductor --scope user`, and in a project run `claude plugin enable herdr-conductor@herdr-conductor --scope project` (`disable` turns it off there again), then `/reload-plugins`. A project-level `false` overrides a user-scope install inside that folder, and a project-level `true` overrides a disabled one. The repository's `scripts/hc` wraps this as `hc on`, `hc off` and `hc status`, and uses `--scope local` when the repository tracks `.claude/settings.json`.
+- The command-line install needs no prompts.
+- A folder whose committed `.claude/settings.json` already declares the marketplace and enables the plugin loads it for anyone who clones the repo and trusts the folder, with no install on their side; that is how a project enables it, not the way in.
+- If the marketplace was already known from a project, the global install does not declare it in user settings; `claude plugin marketplace add yigitkonur/herdr-conductor` does.
+- A project-level `false` overrides a user-scope install inside that folder, and a project-level `true` overrides a disabled one.
 
 For development, load a checkout directly: `claude --plugin-dir ./plugins/herdr-conductor`.
-
-Then run `/herdr-conductor:setup` once: it checks herdr, the server, integrations, saved machines and harnesses (read-only), and writes the optional config.
 
 ## What is in it
 

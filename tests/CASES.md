@@ -128,15 +128,15 @@ Where each finding is stated (paths relative to `plugins/herdr-conductor/`). Rew
 | N20 | skills/herdr/references/cli.md | `agent_name_taken` |
 | N21 | skills/herdr/references/ledger.md | a `CONDUCTOR.md` without a `repos:` block is not a card |
 | N22 | skills/watch/SKILL.md | herdr-conductor watch sweep: |
-| N23 | README.md | claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor |
+| N23 | README.md | The command-line install needs no prompts |
 | N24 | skills/herdr/references/waiting.md | notifications from background waits are held until it is answered |
 | N25 | hooks/scripts/session_context.py | this process lives on, so background |
 | N26 | skills/herdr/references/autonomy.md | a prompt, keys, typed text or close aimed at this session's own pane, tab or workspace |
 | N27 | skills/herdr/references/worktrees.md | open a draft PR (`gh pr create --draft` |
 | N28 | skills/herdr/references/waiting.md | TEAMEND *- *k3x9 |
 | N29 | agents/herdr-worker.md | For `needs_decision`, `running` and `blocked` leave it open |
-| N30 | README.md | A teammate who clones the repo and trusts the folder needs nothing else |
-| N31 | README.md | the one-liner installs the plugin without declaring the marketplace in user settings |
+| N30 | README.md | loads it for anyone who clones the repo and trusts the folder, with no install on their side |
+| N31 | README.md | the global install does not declare it in user settings |
 | N32 | README.md | did pick up a later release by itself |
 | N33 | README.md | A project-level `false` overrides a user-scope install inside that folder |
 | N34 | README.md | a project-level `true` overrides a disabled one |
