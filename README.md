@@ -37,7 +37,7 @@ you want `herdr-conductor@herdr-conductor`, `Scope: user`, `Status: ✔ enabled`
 you need:
 
 - herdr 0.9.5 or newer, on every machine you want to drive
-- claude code 2.1.292 or newer (that's where `--marketplace` landed; tested on 2.1.302 through 2.1.306)
+- claude code 2.1.292 or newer (that's where `--marketplace` landed; tested on 2.1.302 through 2.1.308)
 - `python3` (the hooks and the snapshot helper use it)
 - the harness clis you actually want to run (claude, codex, agy...), installed and logged in
 
