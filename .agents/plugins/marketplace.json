@@ -1,0 +1,20 @@
+{
+  "name": "herdr-conductor",
+  "interface": {
+    "displayName": "herdr-conductor"
+  },
+  "plugins": [
+    {
+      "name": "herdr-conductor",
+      "source": {
+        "source": "local",
+        "path": "./plugins/herdr-conductor"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

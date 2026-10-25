@@ -10,6 +10,8 @@ allowed-tools: Bash(herdr *), Bash(herdr-snapshot *), Bash(git status *), Bash(g
 
 Goal from the user: $ARGUMENTS
 
+In Codex, `$ARGUMENTS` is not filled in (the arguments are what the user wrote after the skill name) and there are no background tasks, cron or AskUserQuestion: read `${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/host-codex.md` (the plugin root is the folder two levels above this file's `skills/`).
+
 1. If the goal above is empty, ask the user for it in one plain sentence and stop.
 2. Read `${CLAUDE_PLUGIN_ROOT}/skills/herdr/SKILL.md` unless it is already loaded in this session, then `${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/scenarios.md`, `ledger.md` and `autonomy.md` in the same folder. They are the rules; this command only starts them.
 3. Route: a goal one agent can finish and you can check runs as a **task**; anything needing a plan file, more than one agent or more than one wave runs as a **project**. When it is unclear, ask with AskUserQuestion which of the two the user means (recommendation first).

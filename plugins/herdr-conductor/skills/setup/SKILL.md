@@ -10,6 +10,8 @@ allowed-tools: Bash(herdr *), Bash(herdr-snapshot *), Bash(git rev-parse *), Bas
 
 Argument: $ARGUMENTS (empty means all three parts, in order).
 
+In Codex, `$ARGUMENTS` is not filled in (the arguments are what the user wrote after the skill name) and there are no background tasks, cron or AskUserQuestion: read `${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/host-codex.md` (the plugin root is the folder two levels above this file's `skills/`).
+
 ## doctor (read-only)
 
 Run each check once and print one line per check: ok, warn or fail, with the evidence.

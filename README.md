@@ -141,6 +141,29 @@ things worth knowing:
 - for an untracked `.claude/settings.json`, `hc on` adds it to `.git/info/exclude` so `git add -A` can't sweep it in.
 - you can also install per project (marketplace add, install and disable, all with `--scope project`); that works too but isn't needed.
 
+### codex: same plugin, same idea
+
+the repo is also a codex marketplace (`.agents/plugins/marketplace.json`), and the same skills and hooks load there. what codex doesn't have: the `herdr-worker` subagent, background-task wake-ups, cron and `AskUserQuestion`. the skill has a short reference for that (`host-codex.md`), so codex waits in the foreground instead.
+
+```bash
+# once per machine: install globally, then switch it off everywhere
+codex plugin marketplace add yigitkonur/herdr-conductor
+codex plugin add herdr-conductor@herdr-conductor
+mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/yigitkonur/herdr-conductor/main/scripts/codex-plugin-project.sh -o ~/.local/bin/codex-plugin-project.sh && chmod +x ~/.local/bin/codex-plugin-project.sh
+codex-plugin-project.sh global-off herdr-conductor@herdr-conductor
+
+# turn it on for one project (run inside it), and off again
+codex-plugin-project.sh on herdr-conductor@herdr-conductor . --trust
+codex-plugin-project.sh off herdr-conductor@herdr-conductor
+
+# update (start a new session afterwards)
+codex plugin marketplace upgrade herdr-conductor
+```
+
+codex has no `plugin enable/disable`, so the script writes `[plugins."herdr-conductor@herdr-conductor"] enabled = true` into `<project>/.codex/config.toml`. codex ignores that file unless the project is trusted, which is what `--trust` adds to `~/.codex/config.toml`. heads up: trusting a project also turns on its hooks and rules, so only do it for projects you own. check with `codex plugin list` (`installed, enabled` inside the project, `installed, disabled` elsewhere). the first time, codex asks you to review the plugin's hooks: trust them.
+
+on the claude side the plugin ships with `defaultEnabled: false`, so a plain `claude plugin install` already lands disabled; per project it's still `claude plugin enable herdr-conductor@herdr-conductor --scope project`. no github ssh key on the box? set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` or background updates fail quietly.
+
 ### on a saved machine
 
 plugins live in each machine's own claude config, so a remote box needs its own install. over ssh it's the same one line:

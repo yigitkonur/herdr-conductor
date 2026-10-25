@@ -10,6 +10,8 @@ allowed-tools: Bash(herdr *), Bash(herdr-snapshot *), Read, CronCreate, CronList
 
 Arguments: $ARGUMENTS
 
+In Codex, `$ARGUMENTS` is not filled in (the arguments are what the user wrote after the skill name) and there are no background tasks, cron or AskUserQuestion: read `${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/host-codex.md` (the plugin root is the folder two levels above this file's `skills/`).
+
 Read-only: this command takes nothing over. Acting on an agent the session does not own needs the user's go.
 
 1. Servers: `local` (default), a machine label, or `all` (this machine plus every enabled label in `herdr machine list --json`).

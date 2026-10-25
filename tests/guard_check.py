@@ -31,6 +31,7 @@ DENY = [
     "herdr tab close $HERDR_TAB_ID", "herdr tab close \"$HERDR_TAB_ID\"", "herdr workspace close ${HERDR_WORKSPACE_ID}",
     "herdr agent prompt $HERDR_PANE_ID 'x'", "cd /tmp && herdr pane close \"${HERDR_PANE_ID}\"",
     "herdr worktree remove --workspace $HERDR_WORKSPACE_ID",
+    "bash -lc 'herdr server stop'", "zsh -ic \"herdr update\"",
 ]
 PASS = [
     "herdr api snapshot", "herdr agent get a", "herdr agent read wOWN:p1 --source visible --lines 40",
@@ -49,6 +50,12 @@ def denied(cmd):
                        capture_output=True, text=True, env=ENV, timeout=10)
     return '"permissionDecision": "deny"' in p.stdout
 
+
+argv_form = subprocess.run([sys.executable, "-I", str(GUARD), "--host=codex"], capture_output=True, text=True, env=ENV,
+                           input=json.dumps({"tool_input": {"command": ["bash", "-lc", "herdr server stop"]}}), timeout=10)
+if '"permissionDecision": "deny"' not in argv_form.stdout:
+    print("MISS should deny: argv-list form (Codex)")
+    sys.exit(1)
 
 bad = [("should deny", c) for c in DENY if not denied(c)] + [("should pass", c) for c in PASS if denied(c)]
 for how, c in bad:

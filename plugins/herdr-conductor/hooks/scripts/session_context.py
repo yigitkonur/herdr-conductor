@@ -16,6 +16,7 @@ import time
 
 STATE = os.path.expanduser("~/.local/state/herdr-conductor/projects.tsv")
 CONFIG = os.path.expanduser("~/.config/herdr-conductor/config.md")
+CODEX = "--host=codex" in sys.argv
 
 
 def run(cmd, cwd=None):
@@ -156,7 +157,11 @@ def main():
                 owner = ""
             mine = bool(owner) and owner == sid
             w = waiters(open(led, encoding="utf-8").read())
-            if source == "resume" and (mine or not owner):
+            if CODEX and (mine or not owner):
+                parts.append(f"open run {led} (last written {age} min ago); Codex has no background waiters: "
+                             "for each Waiter run `herdr agent get <name>`, compare completion_seq, read the "
+                             "screen, then wait in the foreground with a timeout. Waiters: " + (" | ".join(w) or "none"))
+            elif source == "resume" and (mine or not owner):
                 parts.append(f"open run {led} (last written {age} min ago); background waiters did not "
                              "survive: for each Waiter run `herdr agent get <name>`, compare completion_seq, "
                              "read the screen, then re-arm. Waiters: " + (" | ".join(w) or "none"))

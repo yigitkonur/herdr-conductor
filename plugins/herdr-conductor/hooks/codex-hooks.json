@@ -1,0 +1,28 @@
+{
+  "description": "herdr-conductor for Codex: deny the herdr never-list in shell commands; one context line at session start when herdr matters here",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v python3 >/dev/null 2>&1 && exec python3 -I \"${PLUGIN_ROOT}/hooks/scripts/guard.py\" --host=codex || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v python3 >/dev/null 2>&1 && exec python3 -I \"${PLUGIN_ROOT}/hooks/scripts/session_context.py\" --host=codex || true",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "herdr-conductor watch"
+  short_description: "Show what is running in herdr across servers"
+  default_prompt: "Use $watch with herdr."
+policy:
+  allow_implicit_invocation: false

@@ -195,8 +195,8 @@ def judge(cmd, depth=0):
         return judge_herdr(args)
     if exe in {"pkill", "killall"} and any("herdr" in a for a in args):
         return f"{exe} herdr kills the herdr server or other sessions' waiters"
-    if exe in SHELLS and "-c" in args:
-        k = args.index("-c")
+    if exe in SHELLS and any(re.match(r"^-[a-z]*c$", a) for a in args):  # -c, -lc, -ic
+        k = next(n for n, a in enumerate(args) if re.match(r"^-[a-z]*c$", a))
         return judge_text(args[k + 1], depth + 1) if k + 1 < len(args) else None
     if exe == "ssh":
         k = 0
@@ -248,6 +248,8 @@ def main():
     try:
         data = json.load(sys.stdin)
         command = data.get("tool_input", {}).get("command", "")
+        if isinstance(command, list):  # Codex may hand the shell command over as an argv list
+            command = shlex.join(str(a) for a in command)
         if not isinstance(command, str) or not re.search(r"herdr|pkill|killall", command):
             return
         ALLOW.extend(load_allow())

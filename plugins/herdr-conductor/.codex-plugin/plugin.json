@@ -1,0 +1,25 @@
+{
+  "name": "herdr-conductor",
+  "version": "0.1.4",
+  "description": "Conduct coding agents in herdr: discover, start, prompt, wait, answer dialogs, verify on the machine, review across harnesses, worktrees and saved machines.",
+  "author": {
+    "name": "Yigit Konur",
+    "url": "https://github.com/yigitkonur"
+  },
+  "homepage": "https://github.com/yigitkonur/herdr-conductor",
+  "repository": "https://github.com/yigitkonur/herdr-conductor",
+  "license": "MIT",
+  "keywords": ["herdr", "agents", "orchestration", "conductor", "codex", "claude", "agy", "worktrees", "terminal"],
+  "interface": {
+    "displayName": "herdr-conductor",
+    "shortDescription": "Drive coding agents in herdr",
+    "longDescription": "Discover, start, prompt, wait on, read and answer coding agents (claude, codex, agy and others) in herdr workspaces, tabs, panes and worktrees, locally or on a saved machine. A guard hook denies the herdr never-list; the ledger keeps long runs honest.",
+    "developerName": "Yigit Konur",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "defaultPrompt": ["What is running in herdr?"],
+    "websiteURL": "https://github.com/yigitkonur/herdr-conductor"
+  },
+  "skills": "./skills/",
+  "hooks": "./hooks/codex-hooks.json"
+}

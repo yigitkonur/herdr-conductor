@@ -17,6 +17,7 @@
 usage: python3 -I tools/lint.py            # checks, exit 1 on any FAIL
        python3 -I tools/lint.py --tree [group ...]   # leaves with their flags
 """
+import json
 import pathlib
 import re
 import subprocess
@@ -332,6 +333,14 @@ def main():
         if p and not node.get(p) and unused:
             warns.append(f"FLAGS {' '.join(p)}: not named anywhere: {' '.join(unused)}")
     front()
+    vers = {}
+    for rel in ("plugins/herdr-conductor/.claude-plugin/plugin.json", "plugins/herdr-conductor/.codex-plugin/plugin.json"):
+        try:
+            vers[rel] = json.loads((REPO / rel).read_text()).get("version")
+        except (OSError, ValueError):
+            fails.append(f"MANIFEST {rel} missing or not JSON")
+    if len(set(vers.values())) > 1:
+        fails.append(f"MANIFEST Claude and Codex versions differ: {vers}")
     n = len(SKILL.read_text().splitlines())
     if n >= 500:
         fails.append(f"SIZE SKILL.md has {n} lines (limit 500)")

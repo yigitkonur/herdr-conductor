@@ -5,9 +5,9 @@ description: This skill should be used when the user mentions herdr, or asks to 
 
 # herdr conductor
 
-Drive herdr (workspaces, tabs, panes, worktrees and the coding agents in them) from this Claude Code session. The installed binary is the authority for syntax: `herdr <group> <sub> --help` prints that command's usage and runs nothing, and `herdr completion zsh` holds the whole tree. Facts here were seen on herdr 0.9.5 unless tagged *(seen 0.9.3)*.
+Drive herdr (workspaces, tabs, panes, worktrees and the coding agents in them) from this session. The installed binary is the authority for syntax: `herdr <group> <sub> --help` prints that command's usage and runs nothing, and `herdr completion zsh` holds the whole tree. Facts here were seen on herdr 0.9.5 unless tagged *(seen 0.9.3)*.
 
-Plugin root: `${CLAUDE_PLUGIN_ROOT}`. References live in `${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/`; read one when the work reaches it (table below).
+Plugin root: `${CLAUDE_PLUGIN_ROOT}`. References live in `${CLAUDE_PLUGIN_ROOT}/skills/herdr/references/`; read one when the work reaches it (table below). **Running in Codex** (no `agents/`, no background tasks, `${CLAUDE_PLUGIN_ROOT}` not substituted): read `references/host-codex.md` first.
 
 Reading this skill does not by itself authorize launching agents or touching existing sessions; a task from the user does, within its scope.
 
@@ -63,6 +63,7 @@ Ties go to the smaller scenario; a task that grows promotes itself to a project 
 
 | When | Read |
 | --- | --- |
+| Running in Codex | references/host-codex.md |
 | Before the first `agent start` of a harness, and again after a compaction | references/dialogs.md and references/harness-claude.md, harness-codex.md or harness-agy.md |
 | Before a wait longer than a few minutes, several agents at once, or ending a turn while agents work | references/waiting.md |
 | A state looks wrong, or before treating `idle`/`done` as finished | references/states.md |

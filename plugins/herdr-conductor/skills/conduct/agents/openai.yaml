@@ -1,0 +1,6 @@
+interface:
+  display_name: "herdr-conductor conduct"
+  short_description: "Conduct a goal through herdr agents end to end"
+  default_prompt: "Use $conduct with herdr."
+policy:
+  allow_implicit_invocation: false
