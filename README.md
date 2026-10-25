@@ -94,31 +94,52 @@ git clone https://github.com/yigitkonur/herdr-conductor
 claude --plugin-dir ./herdr-conductor/plugins/herdr-conductor
 ```
 
-### installed but switched off, per project
+### installed everywhere, on only where you want it
 
-want it sitting in a project, ready, without it loading until you say so? install it at project scope and disable it. nothing is global, and the folder you run this in is the only one that changes:
+the plugin adds about 550 tokens to every session while it's enabled. so install it globally, keep it switched off, and enable it per project when you actually want to conduct something:
 
 ```bash
-cd your-project
-claude plugin marketplace add yigitkonur/herdr-conductor --scope project
-claude plugin install herdr-conductor@herdr-conductor --scope project
-claude plugin disable herdr-conductor@herdr-conductor --scope project
+claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor
+claude plugin disable herdr-conductor@herdr-conductor --scope user
 ```
 
-that leaves `.claude/settings.json` with the marketplace declared and `"herdr-conductor@herdr-conductor": false`. a fresh claude in that folder doesn't see the skill, the worker or the guard. when you want it:
+then, in the project you want it in:
 
 ```bash
 claude plugin enable herdr-conductor@herdr-conductor --scope project
 ```
 
-then `/reload-plugins` in a session that's already open (or just start claude). to switch it off again, run the `disable` line. checked live: before the enable a fresh claude listed no herdr-conductor skill, after the enable and a reload it listed `herdr-conductor:herdr` and `herdr-conductor:herdr-worker`.
+and `/reload-plugins` in a claude that's already open (or just start claude). to turn it off there again:
+
+```bash
+claude plugin disable herdr-conductor@herdr-conductor --scope project
+```
+
+nothing else changes: other folders stay off, and there's no per-project install to do.
+
+#### the short version: `hc`
+
+a tiny script wraps those two lines and picks the right scope for the folder you're in. it lives outside the plugin on purpose (the plugin's own `bin/` isn't on your path while it's off):
+
+```bash
+mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/yigitkonur/herdr-conductor/main/scripts/hc -o ~/.local/bin/hc && chmod +x ~/.local/bin/hc
+```
+
+```bash
+hc on        # enable here
+hc off       # disable here
+hc status    # on or off here
+hc on ~/some/other/project
+```
+
+if the plugin isn't installed on that machine yet, `hc on` installs it globally (disabled) first. checked live through herdr on a scratch project: a fresh claude saw no herdr-conductor, `hc on` plus `/reload-plugins` took the reload from 5 plugins, 17 skills, 17 agents, 9 hooks to 6, 21, 18, 11 (this plugin's 4 skills, 1 agent and 2 hooks), and `hc off` plus a reload took it back.
 
 things worth knowing:
 
-- a project's `false` beats a user-scope install inside that folder, so it stays off there even if you also have it installed globally.
-- if the repo already tracks `.claude/settings.json`, don't dirty it: use `--scope local` on all three commands. that writes `.claude/settings.local.json`, which claude gitignores.
-- to keep an untracked `.claude/settings.json` out of `git add -A`, add it to `.git/info/exclude`.
-- `claude plugin list` shows one entry per project you did this in.
+- a project's `false` beats a user-scope install that's on, and a project's `true` beats one that's off. that's why this works.
+- if the repo already tracks `.claude/settings.json`, `hc` uses `--scope local` (writes `.claude/settings.local.json`, which claude gitignores) so no tracked file gets dirty. by hand, add `--scope local` to the enable and disable lines.
+- for an untracked `.claude/settings.json`, `hc on` adds it to `.git/info/exclude` so `git add -A` can't sweep it in.
+- you can also install per project (marketplace add, install and disable, all with `--scope project`); that works too but isn't needed.
 
 ### on a saved machine
 
@@ -276,7 +297,7 @@ not vibes-tested. run live on herdr 0.9.5 with claude, codex and agy, locally an
 - a `conduct` run that opened a draft pr through `gh` and had a second claude review it with a pass comment, then removed its worktree cleanly
 - the worker's long path: out of time budget, it hands back `running` with handles, and the conductor's own background wait picks the agent up when it finishes
 - an open question dialog holds background notifications until it's answered (they arrive late, not lost)
-- the per-project "installed but off" flow: set up on three machines (about 34 project folders), checked live that a fresh claude sees nothing until `enable`, and that `enable` plus `/reload-plugins` brings the skill and the worker in
+- the "installed everywhere, on only where you want it" flow: installed globally and disabled on four machines, `hc on` and `hc off` driven through herdr on a scratch project, with the reload counts changing by exactly this plugin's parts
 - the install itself: the one-liner from an empty claude config, project scope, a pinned ref, and a clean uninstall and reinstall over ssh on a remote box, with a fresh claude there seeing the skill, the worker agent and the session-start line
 - the `claude plugin eval` suite, honestly: triggering (+1.0 over a no-plugin baseline) and the start-and-wait plan (+0.5) separate the plugin from the baseline, the "don't fire on ordinary subagent work" case holds, and the timeout-recovery case does not separate them yet (a plain model answers it the same way). the suite is noisy, details in `tests/CASES.md` (n11)
 
