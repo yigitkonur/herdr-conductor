@@ -20,6 +20,8 @@ One command, no prompts: it adds this repository as a marketplace and installs t
 
 For a team, commit the two entries that `claude plugin marketplace add yigitkonur/herdr-conductor --scope project` and `claude plugin install herdr-conductor@herdr-conductor --scope project` write to `.claude/settings.json`. A teammate who clones the repo and trusts the folder needs nothing else: the skill, the worker agent and the guard are live in that first session, and the session-start line appears from the next one. `claude plugin list` does not list a plugin the project enabled. If the marketplace was already known from a project, the one-liner installs the plugin without declaring the marketplace in user settings; `claude plugin marketplace add yigitkonur/herdr-conductor` declares it.
 
+To keep it installed but off in a project, run `claude plugin marketplace add yigitkonur/herdr-conductor --scope project`, `claude plugin install herdr-conductor@herdr-conductor --scope project` and `claude plugin disable herdr-conductor@herdr-conductor --scope project` in that folder; `claude plugin enable herdr-conductor@herdr-conductor --scope project` plus `/reload-plugins` turns it on there. A project-level `false` overrides a user-scope install inside that folder. When the repository tracks `.claude/settings.json`, use `--scope local` instead.
+
 For development, load a checkout directly: `claude --plugin-dir ./plugins/herdr-conductor`.
 
 Then run `/herdr-conductor:setup` once: it checks herdr, the server, integrations, saved machines and harnesses (read-only), and writes the optional config.

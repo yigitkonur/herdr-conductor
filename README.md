@@ -94,6 +94,32 @@ git clone https://github.com/yigitkonur/herdr-conductor
 claude --plugin-dir ./herdr-conductor/plugins/herdr-conductor
 ```
 
+### installed but switched off, per project
+
+want it sitting in a project, ready, without it loading until you say so? install it at project scope and disable it. nothing is global, and the folder you run this in is the only one that changes:
+
+```bash
+cd your-project
+claude plugin marketplace add yigitkonur/herdr-conductor --scope project
+claude plugin install herdr-conductor@herdr-conductor --scope project
+claude plugin disable herdr-conductor@herdr-conductor --scope project
+```
+
+that leaves `.claude/settings.json` with the marketplace declared and `"herdr-conductor@herdr-conductor": false`. a fresh claude in that folder doesn't see the skill, the worker or the guard. when you want it:
+
+```bash
+claude plugin enable herdr-conductor@herdr-conductor --scope project
+```
+
+then `/reload-plugins` in a session that's already open (or just start claude). to switch it off again, run the `disable` line. checked live: before the enable a fresh claude listed no herdr-conductor skill, after the enable and a reload it listed `herdr-conductor:herdr` and `herdr-conductor:herdr-worker`.
+
+things worth knowing:
+
+- a project's `false` beats a user-scope install inside that folder, so it stays off there even if you also have it installed globally.
+- if the repo already tracks `.claude/settings.json`, don't dirty it: use `--scope local` on all three commands. that writes `.claude/settings.local.json`, which claude gitignores.
+- to keep an untracked `.claude/settings.json` out of `git add -A`, add it to `.git/info/exclude`.
+- `claude plugin list` shows one entry per project you did this in.
+
 ### on a saved machine
 
 plugins live in each machine's own claude config, so a remote box needs its own install. over ssh it's the same one line:
@@ -250,6 +276,7 @@ not vibes-tested. run live on herdr 0.9.5 with claude, codex and agy, locally an
 - a `conduct` run that opened a draft pr through `gh` and had a second claude review it with a pass comment, then removed its worktree cleanly
 - the worker's long path: out of time budget, it hands back `running` with handles, and the conductor's own background wait picks the agent up when it finishes
 - an open question dialog holds background notifications until it's answered (they arrive late, not lost)
+- the per-project "installed but off" flow: set up on three machines (about 34 project folders), checked live that a fresh claude sees nothing until `enable`, and that `enable` plus `/reload-plugins` brings the skill and the worker in
 - the install itself: the one-liner from an empty claude config, project scope, a pinned ref, and a clean uninstall and reinstall over ssh on a remote box, with a fresh claude there seeing the skill, the worker agent and the session-start line
 - the `claude plugin eval` suite, honestly: triggering (+1.0 over a no-plugin baseline) and the start-and-wait plan (+0.5) separate the plugin from the baseline, the "don't fire on ordinary subagent work" case holds, and the timeout-recovery case does not separate them yet (a plain model answers it the same way). the suite is noisy, details in `tests/CASES.md` (n11)
 
