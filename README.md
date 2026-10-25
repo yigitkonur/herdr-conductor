@@ -169,7 +169,7 @@ claude plugin marketplace update herdr-conductor
 claude plugin update herdr-conductor@herdr-conductor
 ```
 
-restart claude to apply. third-party marketplaces don't auto-update by default. the docs say `"autoUpdate": true` on the marketplace entry in your settings turns it on, but in a test it never fired (two fresh sessions, refresh time backdated two days), so these two commands are the sure way.
+restart claude to apply. third-party marketplaces don't auto-update by default. `"autoUpdate": true` on the marketplace entry in your settings turns it on. it didn't react in a short test (two fresh sessions of a few minutes), but on a machine that kept the flag it did pick up a new release by itself: the marketplace was refreshed at the moment of the release and the plugin went to the new version (restart to apply). the trigger isn't documented, so for "right now" these two commands are the sure way.
 
 to pin the marketplace to a branch or tag, put it after a `#`:
 
@@ -177,10 +177,10 @@ to pin the marketplace to a branch or tag, put it after a `#`:
 claude plugin marketplace add 'yigitkonur/herdr-conductor#main'
 ```
 
-releases are tagged `herdr-conductor--v<version>`, so pinning to one looks like this:
+releases are tagged `herdr-conductor--v<version>` (and `v<version>`), so pinning to one looks like this:
 
 ```bash
-claude plugin marketplace add 'yigitkonur/herdr-conductor#herdr-conductor--v0.1.3'
+claude plugin marketplace add 'yigitkonur/herdr-conductor#herdr-conductor--v0.1.4'
 claude plugin install herdr-conductor@herdr-conductor
 ```
 
@@ -301,7 +301,7 @@ not vibes-tested. run live on herdr 0.9.5 with claude, codex and agy, locally an
 - the install itself: the one-liner from an empty claude config, project scope, a pinned ref, and a clean uninstall and reinstall over ssh on a remote box, with a fresh claude there seeing the skill, the worker agent and the session-start line
 - the `claude plugin eval` suite, honestly: triggering (+1.0 over a no-plugin baseline) and the start-and-wait plan (+0.5) separate the plugin from the baseline, the "don't fire on ordinary subagent work" case holds, and the timeout-recovery case does not separate them yet (a plain model answers it the same way). the suite is noisy, details in `tests/CASES.md` (n11)
 
-being honest, not yet verified: auto-update (it didn't fire in a test, see above), an agy team with workers actually running and agy quota recovery (the local agy is an account-rotating wrapper, and launching one would have rotated the account under a live session), plus three rules that are written down but were never provoked live: hands off when you're focused on an agent's pane, two timeouts on an unchanged screen count as no progress, and one re-arm after a dropped ssh. they're flagged in the docs so nothing pretends otherwise.
+being honest, not yet verified: an agy team with workers actually running and agy quota recovery (the local agy is an account-rotating wrapper, and launching one would have rotated the account under a live session), plus three rules that are written down but were never provoked live: hands off when you're focused on an agent's pane, two timeouts on an unchanged screen count as no progress, and one re-arm after a dropped ssh. they're flagged in the docs so nothing pretends otherwise.
 
 every live case and what it showed is in [`tests/CASES.md`](tests/CASES.md).
 
