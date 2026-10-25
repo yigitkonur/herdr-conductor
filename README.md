@@ -10,15 +10,77 @@ driving agents through a terminal multiplexer is weirder than it looks. `idle` d
 
 this plugin is the scar tissue from running all of that for real, written down so claude stops rediscovering it the hard way every session.
 
+<!-- kit:install:start -->
 ## install
 
-one line in your terminal. no menus, no prompts:
+Every plugin of ours is installed **once, globally, and off**, then **turned on per project**. Nothing runs and no tokens are spent in chats that don't switch it on. It works the same in Claude Code and Codex.
 
-```bash
-claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor
+### 1. install it globally
+
+**Claude Code**
+
+```sh
+claude plugin marketplace add yigitkonur/herdr-conductor
+claude plugin install herdr-conductor@herdr-conductor -s user          # stays off: defaultEnabled is false in the manifest
 ```
 
-that adds this repo as a marketplace (it is one, with a single plugin in it) and installs the plugin at user scope, so it works in every project on the machine. about 8 seconds. then start claude (or run `/reload-plugins` in a session that's already open) and run this once:
+**Codex** (0.163+)
+
+```sh
+codex plugin marketplace add yigitkonur/herdr-conductor
+codex plugin add herdr-conductor@herdr-conductor
+codex-plugin-project.sh global-off herdr-conductor@herdr-conductor     # Codex has no enable/disable command; this keeps it off everywhere
+```
+
+All our plugins, both hosts, plus the `plugin` command and the 6-hourly update job, in one line:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/yigitkonur/plugin-kit/main/install.sh | sh -s -- --all
+```
+
+### 2. turn it on in a project
+
+```sh
+cd your-project
+plugin on herdr-conductor    # Claude Code and Codex, this folder only
+plugin off herdr-conductor   # undo
+plugin                       # or pick from a list (TUI)
+```
+
+By hand, without the `plugin` command:
+
+```sh
+claude plugin enable herdr-conductor@herdr-conductor --scope project      # undo: claude plugin disable herdr-conductor@herdr-conductor --scope project
+codex-plugin-project.sh on herdr-conductor@herdr-conductor . --trust      # undo: codex-plugin-project.sh off herdr-conductor@herdr-conductor
+```
+
+Restart `claude` / `codex` in that folder afterwards.
+Codex reads a folder's `.codex/config.toml` only when the folder is trusted; `--trust` adds that, and it also enables the folder's hooks and rules, so use it for your own projects only. `plugin` and `codex-plugin-project.sh` come from [plugin-kit](https://github.com/yigitkonur/plugin-kit) (the one-line installer above).
+
+### 3. updates
+
+A plugin updates only when its `version` changes, and this repo's `release` workflow bumps it on every shipped change. Machines pick it up with `plugin update`, or by themselves with the 6-hourly job (`plugin autoupdate install`). By hand:
+
+```sh
+claude plugin marketplace update herdr-conductor && claude plugin update herdr-conductor@herdr-conductor
+codex plugin marketplace upgrade herdr-conductor        # then start a new session
+```
+
+No GitHub SSH key on the machine? `export CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` (`plugin install` sets it in Claude's settings for you).
+
+### 4. uninstall
+
+```sh
+claude plugin uninstall herdr-conductor@herdr-conductor -s user
+claude plugin marketplace remove herdr-conductor
+codex plugin remove herdr-conductor@herdr-conductor
+codex plugin marketplace remove herdr-conductor
+```
+<!-- kit:install:end -->
+
+### first run
+
+then start claude (or run `/reload-plugins` in a session that's already open) in a project where you switched it on, and run this once:
 
 ```text
 /herdr-conductor:setup
@@ -32,60 +94,24 @@ check it worked:
 claude plugin list
 ```
 
-you want `herdr-conductor@herdr-conductor`, `Scope: user`, `Status: ✔ enabled`. inside claude, ask "which herdr skills and agents do you have?". the answer is `herdr-conductor:herdr` and `herdr-conductor:herdr-worker`. inside a herdr pane there's also a one-line `herdr-conductor:` context at session start.
+you want `herdr-conductor@herdr-conductor` listed with `Scope: user`, disabled in any folder where you haven't switched it on (that's the point: it costs nothing there). in a project where you ran `plugin on herdr-conductor`, inside claude ask "which herdr skills and agents do you have?". the answer is `herdr-conductor:herdr` and `herdr-conductor:herdr-worker`. inside a herdr pane there's also a one-line `herdr-conductor:` context at session start.
 
 you need:
 
 - herdr 0.9.5 or newer, on every machine you want to drive
-- claude code 2.1.292 or newer (that's where `--marketplace` landed; tested on 2.1.302 through 2.1.308)
+- claude code 2.1.292 or newer (tested on 2.1.302 through 2.1.308)
 - `python3` (the hooks and the snapshot helper use it)
 - the harness clis you actually want to run (claude, codex, agy...), installed and logged in
 
 works from inside a herdr pane or from a plain terminal outside herdr. it figures out which one it's in.
 
-### why a marketplace
+### why it stays off until you switch it on
 
-claude code installs plugins by name from a marketplace, which is just a git repo with a `.claude-plugin/marketplace.json`. this repo is one, so there's nothing else to register or submit. the one-liner above is "add the marketplace, then install from it" in a single command. the other routes don't stick: `claude --plugin-dir <path>` loads a checkout for one session only.
+the plugin adds about 550 tokens to every session while it's enabled, which is why the install above leaves it off and `plugin on herdr-conductor` enables it for one project. a project's `false` beats a user-scope install that's on, and a project's `true` beats one that's off; that's why this works. a fresh claude saw no herdr-conductor in a folder where it was off, and `plugin on` plus `/reload-plugins` took the reload from 5 plugins, 17 skills, 17 agents, 9 hooks to 6, 21, 18, 11 (this plugin's 4 skills, 1 agent and 2 hooks).
 
-### other ways in
+if the repo already tracks `.claude/settings.json`, the switch writes `.claude/settings.local.json` instead (claude gitignores it) so no tracked file gets dirty; by hand, use `--scope local` on the enable and disable lines. an untracked `.claude/settings.json` is added to `.git/info/exclude` so `git add -A` can't sweep it in.
 
-the same thing in two steps:
-
-```bash
-claude plugin marketplace add yigitkonur/herdr-conductor
-claude plugin install herdr-conductor@herdr-conductor
-```
-
-from inside a claude session, as slash commands:
-
-```text
-/plugin marketplace add yigitkonur/herdr-conductor
-/plugin install herdr-conductor@herdr-conductor
-```
-
-the second one opens a small menu asking where to install. the first row, "install for you (user scope)", is already highlighted. hit enter.
-
-for a whole team, commit it to the repo (project scope):
-
-```bash
-cd your-repo
-claude plugin marketplace add yigitkonur/herdr-conductor --scope project
-claude plugin install herdr-conductor@herdr-conductor --scope project
-git add .claude/settings.json && git commit -m "add herdr-conductor"
-```
-
-that writes these two entries into `.claude/settings.json`. teammates then just clone, start claude in the repo and trust the folder. that's the whole install: claude fetches the marketplace in the background, and the skill, the worker agent and the guard are live in that very first session (the session-start line shows up from their next session). heads up, `claude plugin list` won't show it for them, because the project enabled it and they never installed it. if they want it listed, they run the `install` line above with `--scope project`. tested on a second box with every trace of the plugin wiped first.
-
-the same json pasted into `~/.claude/settings.json` works as a declarative user install, but nothing downloads until claude starts a session.
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "herdr-conductor": { "source": { "source": "github", "repo": "yigitkonur/herdr-conductor" } }
-  },
-  "enabledPlugins": { "herdr-conductor@herdr-conductor": true }
-}
-```
+this repo also carries `scripts/hc`, a small Claude-only switch (`hc on`, `hc off`, `hc status`, each taking an optional folder) for when you have a checkout and not the `plugin` command. it installs the plugin globally and off first if the machine doesn't have it. it lives outside the plugin on purpose: the plugin's own `bin/` isn't on your path while it's off.
 
 just kicking the tires, one session only, nothing installed:
 
@@ -94,82 +120,18 @@ git clone https://github.com/yigitkonur/herdr-conductor
 claude --plugin-dir ./herdr-conductor/plugins/herdr-conductor
 ```
 
-### installed everywhere, on only where you want it
-
-the plugin adds about 550 tokens to every session while it's enabled. so install it globally, keep it switched off, and enable it per project when you actually want to conduct something:
-
-```bash
-claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor
-claude plugin disable herdr-conductor@herdr-conductor --scope user
-```
-
-then, in the project you want it in:
-
-```bash
-claude plugin enable herdr-conductor@herdr-conductor --scope project
-```
-
-and `/reload-plugins` in a claude that's already open (or just start claude). to turn it off there again:
-
-```bash
-claude plugin disable herdr-conductor@herdr-conductor --scope project
-```
-
-nothing else changes: other folders stay off, and there's no per-project install to do.
-
-#### the short version: `hc`
-
-a tiny script wraps those two lines and picks the right scope for the folder you're in. it lives outside the plugin on purpose (the plugin's own `bin/` isn't on your path while it's off):
-
-```bash
-mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/yigitkonur/herdr-conductor/main/scripts/hc -o ~/.local/bin/hc && chmod +x ~/.local/bin/hc
-```
-
-```bash
-hc on        # enable here
-hc off       # disable here
-hc status    # on or off here
-hc on ~/some/other/project
-```
-
-if the plugin isn't installed on that machine yet, `hc on` installs it globally (disabled) first. checked live through herdr on a scratch project: a fresh claude saw no herdr-conductor, `hc on` plus `/reload-plugins` took the reload from 5 plugins, 17 skills, 17 agents, 9 hooks to 6, 21, 18, 11 (this plugin's 4 skills, 1 agent and 2 hooks), and `hc off` plus a reload took it back.
-
-things worth knowing:
-
-- a project's `false` beats a user-scope install that's on, and a project's `true` beats one that's off. that's why this works.
-- if the repo already tracks `.claude/settings.json`, `hc` uses `--scope local` (writes `.claude/settings.local.json`, which claude gitignores) so no tracked file gets dirty. by hand, add `--scope local` to the enable and disable lines.
-- for an untracked `.claude/settings.json`, `hc on` adds it to `.git/info/exclude` so `git add -A` can't sweep it in.
-- you can also install per project (marketplace add, install and disable, all with `--scope project`); that works too but isn't needed.
-
-### codex: same plugin, same idea
+### codex differences
 
 the repo is also a codex marketplace (`.agents/plugins/marketplace.json`), and the same skills and hooks load there. what codex doesn't have: the `herdr-worker` subagent, background-task wake-ups, cron and `AskUserQuestion`. the skill has a short reference for that (`host-codex.md`), so codex waits in the foreground instead.
 
-```bash
-# once per machine: install globally, then switch it off everywhere
-codex plugin marketplace add yigitkonur/herdr-conductor
-codex plugin add herdr-conductor@herdr-conductor
-mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/yigitkonur/herdr-conductor/main/scripts/codex-plugin-project.sh -o ~/.local/bin/codex-plugin-project.sh && chmod +x ~/.local/bin/codex-plugin-project.sh
-codex-plugin-project.sh global-off herdr-conductor@herdr-conductor
-
-# turn it on for one project (run inside it), and off again
-codex-plugin-project.sh on herdr-conductor@herdr-conductor . --trust
-codex-plugin-project.sh off herdr-conductor@herdr-conductor
-
-# update (start a new session afterwards)
-codex plugin marketplace upgrade herdr-conductor
-```
-
-codex has no `plugin enable/disable`, so the script writes `[plugins."herdr-conductor@herdr-conductor"] enabled = true` into `<project>/.codex/config.toml`. codex ignores that file unless the project is trusted, which is what `--trust` adds to `~/.codex/config.toml`. heads up: trusting a project also turns on its hooks and rules, so only do it for projects you own. check with `codex plugin list` (`installed, enabled` inside the project, `installed, disabled` elsewhere). the first time (and after each plugin update), codex asks you to review the plugin's hooks: choose trust, and send your prompt again, because the one typed into that dialog is lost.
-
-on the claude side the plugin ships with `defaultEnabled: false`, so a plain `claude plugin install` already lands disabled; per project it's still `claude plugin enable herdr-conductor@herdr-conductor --scope project`. no github ssh key on the box? set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` or background updates fail quietly.
+check with `codex plugin list` (`installed, enabled` inside the project, `installed, disabled` elsewhere). the first time (and after each plugin update), codex asks you to review the plugin's hooks: choose trust, and send your prompt again, because the one typed into that dialog is lost.
 
 ### on a saved machine
 
-plugins live in each machine's own claude config, so a remote box needs its own install. over ssh it's the same one line:
+plugins live in each machine's own claude and codex config, so a remote box needs its own global install. over ssh it's the installer from the block above, then `plugin on herdr-conductor` in the project on that box:
 
 ```bash
-ssh <target> 'claude plugin install herdr-conductor --marketplace yigitkonur/herdr-conductor'
+ssh <target> 'curl -fsSL https://raw.githubusercontent.com/yigitkonur/plugin-kit/main/install.sh | sh -s -- --all'
 ```
 
 the box needs herdr 0.9.5, `python3` and a route to github. a claude that was already running there has to restart to load the hooks. tested on a linux box: skill, worker agent, session-start line, doctor and guard all came up.
@@ -183,48 +145,26 @@ herdr --machine <label> agent prompt inst "/plugin install herdr-conductor@herdr
 herdr --machine <label> agent send-keys inst enter
 ```
 
-read the screen after each one. the first start stops at claude's folder-trust dialog (`down enter` if the folder is yours), and the install menu needs that last `enter`.
+read the screen after each one. the first start stops at claude's folder-trust dialog (`down enter` if the folder is yours), and the install menu needs that last `enter`: pick user scope (the first row), then switch it on in the project with `plugin on herdr-conductor` like anywhere else.
 
-### update, pin, remove
+### pinning a version
 
-```bash
-claude plugin marketplace update herdr-conductor
-claude plugin update herdr-conductor@herdr-conductor
-```
-
-restart claude to apply. third-party marketplaces don't auto-update by default. `"autoUpdate": true` on the marketplace entry in your settings turns it on. it didn't react in a short test (two fresh sessions of a few minutes), but on a machine that kept the flag it did pick up a new release by itself: the marketplace was refreshed at the moment of the release and the plugin went to the new version (restart to apply). the trigger isn't documented, so for "right now" these two commands are the sure way.
-
-to pin the marketplace to a branch or tag, put it after a `#`:
-
-```bash
-claude plugin marketplace add 'yigitkonur/herdr-conductor#main'
-```
-
-releases are tagged `herdr-conductor--v<version>` (and `v<version>`), so pinning to one looks like this:
+to pin the marketplace to a branch or tag, put it after a `#`. releases are tagged `herdr-conductor--v<version>` (and `v<version>`), so pinning to one looks like this:
 
 ```bash
 claude plugin marketplace add 'yigitkonur/herdr-conductor#herdr-conductor--v0.1.4'
-claude plugin install herdr-conductor@herdr-conductor
+claude plugin install herdr-conductor@herdr-conductor -s user
 ```
 
 the list is on the [releases page](https://github.com/yigitkonur/herdr-conductor/releases).
 
-to remove it:
-
-```bash
-claude plugin uninstall herdr-conductor
-claude plugin marketplace remove herdr-conductor
-```
-
-on a remote box, uninstall then the one-liner again left the settings file byte for byte as it was.
-
 ### if it doesn't take
 
 - the install prints "ssh not configured, cloning via https". that's fine, the repo is public.
-- you use `/plugin` inside a session and the clone fails: in-session installs don't fall back to https. start claude with `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, or use the terminal one-liner (docs).
-- installed, but claude doesn't know the skill: restart it, or `/reload-plugins`.
-- the marketplace was already known from some project's settings: the one-liner then installs the plugin but doesn't write the marketplace into your user settings. run `claude plugin marketplace add yigitkonur/herdr-conductor` once and it says "declared in user settings".
-- `claude plugin list` shows it but the doctor warns about `python3`: the hooks need it on the machine's path.
+- you use `/plugin` inside a session and the clone fails: in-session installs don't fall back to https. start claude with `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, or use the terminal commands from the block above.
+- installed, but claude doesn't know the skill: you haven't switched it on in this folder (`plugin on herdr-conductor`), or the session needs a restart or `/reload-plugins`.
+- the marketplace was already known from some project's settings: the install then installs the plugin but doesn't write the marketplace into your user settings. run `claude plugin marketplace add yigitkonur/herdr-conductor` once and it says "declared in user settings".
+- the doctor warns about `python3`: the hooks need it on the machine's path.
 - `claude plugin validate .` in a checkout of this repo checks the marketplace and the plugin manifests.
 
 ## what you can say
